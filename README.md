@@ -1,5 +1,5 @@
 <p align="center"> <a>
-    <img title="Open Source MRF LOGO" src="" width="225">
+    <img title="Open Source MRF LOGO" src="https://github.com/imr-framework/mrf/blob/master/MRF%20Figure.png" width="225">
   </a></p>
 <h1 align="center"> Open Source MRF </h1> <br>
 
