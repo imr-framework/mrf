@@ -22,7 +22,10 @@ This sequence has been verified on the scanner. User should be able to play with
 In MRF_Dic_Matching_v2.m, a dictionary matching method using vector dot product is implemented. User should be able to match the the dictionary with their signal evolutions and the most similar entry will be returned. 
 
 #### Image Reconstruction
-To run MRF_Image_Reconstruction_Complex_Chan.m, Michigan Image Reconstruction Toolbox (MIRT) is required. The script takes in .dat raw data and trajectory file and reconstruct the image using sliding window method. The user should be able to reconstruct their own raw data file and trajectory. 
+To run MRF_Image_Reconstruction_Complex_Chan.m, Michigan Image Reconstruction Toolbox (MIRT) is required. The script takes in .dat raw data and trajectory file and reconstruct the image using sliding window method. The user should be able to reconstruct their own raw data file and trajectory. The following figure shows an example for five subjects. 
+<p align="center"> <a>
+    <img title="flip angles" src="https://github.com/imr-framework/mrf/blob/master/images/Brain_rec_all.jpg" width="225">
+  </a></p>
 
 #### ROI analysis tool
 NIST_ROI_ana.m is the main function which takes in the parameter maps and return locations of spheres in correct order of ISMRM/NIST phantom. To test the tool, ROI_ana_demo.m can be ran with data included the folder. 
