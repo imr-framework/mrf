@@ -7,7 +7,7 @@
 %dim3: size of ktrajectory data
 %dim4: size of concatenated raw data after cutting rewinders
 %% Include MiRT toolbox
-MiRT_path = 'C:\Users\qiane\Desktop\Columbia\Toolbox\MIRT\fessler\fessler\irt';
+MiRT_path = '../Toolbox/MIRT/fessler/fessler/irt';
 addpath(genpath('.'));
 addpath(MiRT_path);
 run('setup.m')
