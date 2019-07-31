@@ -1,0 +1,6 @@
+ function y = reshape(x, varargin)
+%function y = reshape(x, varargin)
+
+% this does not work: freemat still calls local reshape
+% would have to modify path
+y = builtin('reshape', varargin{:});

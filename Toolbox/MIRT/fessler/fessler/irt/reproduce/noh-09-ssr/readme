@@ -1,0 +1,13 @@
+
+todo: move to reproduce directory
+
+Joonki Noh's code for DE CT restoration,
+modified by JF.
+
+@a noh:09:ssr ieee-t-mi 28 11 1688-702 nov 2009
+Joonki Noh  J A Fessler  Paul E Kinahan
+Statistical sinogram restoration in dual-energy CT for PET attenuation correction
+@u doi 10.1109/TMI.2009.2018283
+
+In the "old" directory has older versions of his tools.
+Could be deleted eventually, after I am sure that the main code runs fine.

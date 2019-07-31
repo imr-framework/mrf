@@ -1,0 +1,43 @@
+This directory provides surrogates for various matlab routines
+so that freemat will behave more like matlab.
+This is very much under construction and should be modified
+after each release of freemat.
+
+wish list for 3.6:
+
+graphics:
+	get(0, 'children') % crashes freemat (on Mac)
+	plot(rand(3)), title('test') % returns a handle, but should not
+	subplot(131) % fails: freemat wants subplot('131') or subplot 131
+
+path('newpath', path) % should not return [] if no output argument
+
+help my_m_file	% shows only top line, rather than all comments at top!?
+		% (i.e., when comments immediately follow function declaration)
+
+persistent varname
+	wrong behavior if varname happens to be a mfilename too
+
+gui:
+	^u should clear line
+	page up / down keys don't work in cmd window (scroll wheel ok) on mac
+
+online documentation needed:
+	help subsasgn
+
+feature enhancements:
+	error('format', args...)
+	out = where; (similar to dbstack)
+	st = struct([]); % create empty struct
+
+feature additions:
+	inputname % missing
+	cputime % missing
+	dbstack % (or "where" output)
+
+------- have not checked below here ---------
+
+	subsref([3:5], struct('type', {'()'}, 'subs', {{1}}))
+
+subroutines within @object directory not accessible to the
+methods within that directory.

@@ -1,0 +1,4 @@
+wish list for 3.5 that was fixed in 3.6
+
+matlab differs:
+	num2str(1) % in freemat it leaves an extra space at end

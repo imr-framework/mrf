@@ -1,0 +1,18 @@
+
+issues with freemat 4.0
+
+mfilename
+	does not work in functions
+
+cellarray = who;
+	does not work
+
+help mfilename
+	only shows lines *above* the function declaration
+
+title('label', 'interpreter', 'none')
+	fails in freemat
+
+clear a
+a.works = 1;
+a.case = 0; % this line fails

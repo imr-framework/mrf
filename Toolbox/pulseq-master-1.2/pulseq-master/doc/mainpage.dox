@@ -1,0 +1,54 @@
+/**
+  \mainpage Introduction
+
+This project is an open source framework for the development and execution of
+magnetic resonance (MR) pulse sequences for imaging and spectroscopy. In summary, MRI sequence can be programmed directly in MATLAB and executed on real hardware.
+
+<img src="overview.png">
+
+A central contribution of this project is an **open file format** to compactly
+describe MR sequences suitable for execution on an MRI scanner. The detailed file specification
+can be obtained here: <a href="specification.pdf">`specification.pdf`</a>
+
+The source code provides example implementations of this format. The code is
+divided into <a href="https://github.com/pulseq/pulseq/tree/master/matlab">MATLAB</a> and <a href="https://github.com/pulseq/pulseq/tree/master/src">C++</a> sections. Alternatively, sequences can be programming in <a href="http://www.jemris.org/">JEMRIS</a> using a graphical interface and exported to the Pulseq file format for execution.
+
+## Sequence examples
+
+### Matlab
+
+-  <a href="writeGradientEcho.html">Gradient echo sequence</a>
+-  <a href="writeGradientEcho3D.html">3D Gradient echo sequence</a>
+-  <a href="writeEpi.html">EPI sequence</a>
+-  <a href="writeEpiRS.html">EPI sequence with ramp sampling</a>
+-  <a href="writeEpiSpinEcho.html">SE-EPI sequence</a>
+-  <a href="writeHASTE.html">HASTE sequence</a>
+-  <a href="writeRadialGradientEcho.html">Radial Gradient echo sequence</a>
+-  <a href="writeSelectiveRf.html">Create a 2D selective RF pulse</a>
+-  <a href="writeSpiral.html">Spiral sequence</a>
+-  <a href="writeTrufi.html">Trufi sequence</a>
+-  <a href="writeTSE.html">Turbo spin echo sequence</a>
+-  <a href="writeUTE.html">UTE sequence</a>
+-  <a href="writeUTE_rs.html">UTE sequence with ramp sampling</a>
+
+## Scanner implementations
+
+Currently, *Pulseq* sequences can be executed on the following platforms. Please <a href="mailto:pulseq.mr@uniklinik-freiburg.de">contact us</a> if
+you would like to run open and flexible sequences at your institution.
+
+- Siemens
+- <a href="https://toppemri.github.io">GE</a>
+- <a href="https://github.com/pulseq/bruker_interpreter">Bruker</a>
+
+## Download source code
+
+Both MATLAB and C++ source code is available here: https://github.com/pulseq/pulseq.
+Alternatively, cloning the git repository directly:
+
+    git clone git@github.com:pulseq/pulseq.git
+
+
+
+*/
+
+

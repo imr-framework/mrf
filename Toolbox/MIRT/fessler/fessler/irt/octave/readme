@@ -1,0 +1,37 @@
+this toolbox requires
+pkg load signal % for xcorr xcorr2 dftmtx etc.
+pkg load specfun % for ellipke
+pkg load image % for imfilter etc.
+
+
+note that atan2(-0,-0) gives 0 in matlab and -pi in octave
+there is no simple "right" answer:
+http://savannah.gnu.org/bugs/?func=detailitem&item_id=37379
+
+
+% octave bug 39254:
+
+% works fine:
+a = single(5 * ones(2,3,4));
+b = double(6 * ones(2,3,4));
+a .* b
+
+% fails with error
+% invalid conversion of ComplexNDArray to ComplexMatrix
+c = single(5i * ones(2,3,4));
+d = double(6i * ones(2,3,4));
+c .* d
+
+
+Notes circa 2012
+
+To make IRT work cleanly with octave, here were the changes made:
+
+if: short circuit | & to || &&
+modify strum methods to return 1 and only 1 output (nicely simplifies anyway).
+
+todo:
+fail -> ir_fail because octave has its own fail()
+printf -> fprintf (why?)
+
+missing features: zoom colorbar(gca, map)
