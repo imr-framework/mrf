@@ -7,8 +7,8 @@ clc
 %fast imaging with steady state precession (FISP) with spiral readout. Magn Reson Med. 
 %2015;74(6):spcone-spcone. doi:10.1002/mrm.26048
 %% direct to pulseq folder
-addpath(genpath('../Toolbox/'));
-addpath(genpath('../Sample_Data/'));
+addpath(genpath('../Toolbox/pulseq-master-1.2/pulseq-master/matlab'));
+addpath(genpath('.'))
 
 %% Set system limits
 gamma = 42576000; % in Hz %Determined from Pulseq - do not change,%Hz/T
@@ -25,7 +25,7 @@ RepeatTimes = ceil(total_acq/Cycle_len);
 fov=225e-3;
 Nx=256;% Ny=256;
 sliceThickness=5e-3;
-load('method_orig.mat')
+load('../Sample_Data/method_orig.mat')
 TR_all = method.VariableTR*1e-3;%converted to s
 TE_all = method.VariableTE*1e-3;%converted to s
 FA_all = method.VariableFlip+0.01;
