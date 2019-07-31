@@ -8,7 +8,15 @@
 This package contains several different parts. 
 
 #### Generate MRF sequence 
-In MRF_with_Original_FA_TR.m, a MRF sequene based on Jiang's paper [1] is implemented. This sequence has been verified on the scanner. User should be able to play with the sequence or implement their own sequence using the Pulseq framework. 
+In MRF_with_Original_FA_TR.m, a MRF sequene based on Jiang's paper [1] is implemented. The flip angles and TR used are shown below:
+<p align="center"> <a>
+    <img title="flip angles" src="https://github.com/imr-framework/mrf/blob/master/images/MRF_FA_all.png" width="225">
+  </a></p>
+<p align="center"> <a>
+    <img title="flip angles" src="https://github.com/imr-framework/mrf/blob/master/images/MRF_TR_all.png" width="225">
+  </a></p>
+
+This sequence has been verified on the scanner. User should be able to play with the sequence or implement their own sequence using the Pulseq framework. 
 
 #### Dictionary matching
 In MRF_Dic_Matching_v2.m, a dictionary matching method using vector dot product is implemented. User should be able to match the the dictionary with their signal evolutions and the most similar entry will be returned. 
