@@ -12,5 +12,5 @@ clear
 %% Load data
 addpath('Function')
 addpath('Data')
-load('T2_map_rot30.mat')
+load('T1_map_rot45.mat')
 sphere_par = NIST_ROI_ana(T2_map_rot, 'T2', 128, 210);
