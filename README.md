@@ -13,7 +13,7 @@ To run gen_MRF_sequence_pulseq.m, Pulseq is required. In the script, a MRF seque
     <img title="flip angles" src="https://github.com/imr-framework/mrf/blob/master/images/MRF_FA_all.png" width="225">
   </a></p>
 <p align="center"> <a>
-    <img title="flip angles" src="https://github.com/imr-framework/mrf/blob/master/images/MRF_TR_all.png" width="225">
+    <img title="TR" src="https://github.com/imr-framework/mrf/blob/master/images/MRF_TR_all.png" width="225">
   </a></p>
 
 This sequence has been verified on the scanner. User should be able to play with the sequence or implement their own sequence using the Pulseq framework. 
@@ -30,7 +30,7 @@ To run MRF_Image_Reconstruction_Complex_Chan.m, Michigan Image Reconstruction To
 #### ROI analysis tool
 NIST_ROI_ana.m is the main function which takes in the parameter maps and return locations of spheres in correct order of ISMRM/NIST phantom. To test the tool, ROI_ana_demo.m can be ran with data included the folder. An example is shown below.
 <p align="center"> <a>
-    <img title="Brain image" src="https://github.com/imr-framework/mrf/blob/master/images/T2_map_with_ROI.png" width="225">
+    <img title="NIST phantom image" src="https://github.com/imr-framework/mrf/blob/master/images/T2_map_with_ROI.png" width="225">
   </a></p>
 
 ## Reference
