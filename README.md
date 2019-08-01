@@ -24,7 +24,7 @@ In MRF_Dic_Matching_v2.m, a dictionary matching method using vector dot product 
 #### Image Reconstruction
 To run MRF_Image_Reconstruction_Complex_Chan.m, Michigan Image Reconstruction Toolbox (MIRT) is required. The script takes in .dat raw data and trajectory file and reconstruct the image using sliding window method. The user should be able to reconstruct their own raw data file and trajectory. The following figure shows an example for five subjects. 
 <p align="center"> <a>
-    <img title="flip angles" src="https://github.com/imr-framework/mrf/blob/master/images/Brain_rec_all.jpg" width="225">
+    <img title="Brain image" src="https://github.com/imr-framework/mrf/blob/master/images/MRF_Brain.gif" width="225">
   </a></p>
 
 #### ROI analysis tool
