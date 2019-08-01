@@ -22,7 +22,7 @@ This sequence has been verified on the scanner. User should be able to play with
 In MRF_Dic_Matching_v2.m, a dictionary matching method using vector dot product is implemented. User should be able to match the the dictionary with their signal evolutions and the most similar entry will be returned. 
 
 #### Image Reconstruction
-To run MRF_Image_Reconstruction_Complex_Chan.m, Michigan Image Reconstruction Toolbox (MIRT) is required. The script takes in .dat raw data and trajectory file and reconstruct the image using sliding window method. The user should be able to reconstruct their own raw data file and trajectory. The following figure shows an example for five subjects. 
+To run MRF_Image_Reconstruction_Complex_Chan.m, Michigan Image Reconstruction Toolbox (MIRT) is required. The script takes in .dat raw data and trajectory file and reconstruct the image using sliding window method. The user should be able to reconstruct their own raw data file and trajectory. The following figure shows reconstructed image for one subject. 
 <p align="center"> <a>
     <img title="Brain image" src="https://github.com/imr-framework/mrf/blob/master/images/MRF_Brain.gif" width="225">
   </a></p>
