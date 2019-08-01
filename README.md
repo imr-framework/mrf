@@ -28,8 +28,10 @@ To run MRF_Image_Reconstruction_Complex_Chan.m, Michigan Image Reconstruction To
   </a></p>
 
 #### ROI analysis tool
-NIST_ROI_ana.m is the main function which takes in the parameter maps and return locations of spheres in correct order of ISMRM/NIST phantom. To test the tool, ROI_ana_demo.m can be ran with data included the folder. 
-
+NIST_ROI_ana.m is the main function which takes in the parameter maps and return locations of spheres in correct order of ISMRM/NIST phantom. To test the tool, ROI_ana_demo.m can be ran with data included the folder. An example is shown below.
+<p align="center"> <a>
+    <img title="Brain image" src="https://github.com/imr-framework/mrf/blob/master/images/T2_map_with_ROI.png" width="225">
+  </a></p>
 
 ## Reference
 [1] Jiang Y, Ma D, Seiberlich N, Gulani V, Griswold M. MR fingerprinting using fast imaging with steady state precession (FISP) with spiral readout. Magn Reson Med. 2015;74(6):spcone-spcone. doi:10.1002/mrm.26048
