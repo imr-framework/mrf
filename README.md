@@ -3,12 +3,12 @@
   </a></p>
 <h1 align="center"> Open Source MRF </h1> <br>
 
-**Please note:** You need to install Pulseq in your system for the package to run. Visit their [GitHub page](http://pulseq.github.io/) for more information
+**Please note:** You need to install Pulseq and Michigan Image Reconstruction Toolbox (MIRT) in your system for the package to run. Visit [Pulseq](http://pulseq.github.io/) and [MIRT](https://web.eecs.umich.edu/~fessler/code/) for more information. 
 
 This package contains several different parts. 
 
 #### Generate MRF sequence 
-In MRF_with_Original_FA_TR.m, a MRF sequene based on Jiang's paper [1] is implemented. The flip angles and TR used are shown below:
+To run gen_MRF_sequence_pulseq.m, Pulseq is required. In the script, a MRF sequence based on Jiang's paper [1] is implemented. The flip angles and TR used are shown below:
 <p align="center"> <a>
     <img title="flip angles" src="https://github.com/imr-framework/mrf/blob/master/images/MRF_FA_all.png" width="225">
   </a></p>
