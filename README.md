@@ -31,7 +31,7 @@ This package contains five different parts. To use the package, please pull the 
 3. To demo the tool, ROI_ana_demo.m can be ran with data included the folder.
 
 ## Demo
-To test the package, a demo script can be found at **MRF/demo_MRF.m**. 
+To test the package, a demo script can be found at **mrf/demo_MRF.m**. 
 
 ## Reference
 [1] Jiang Y, Ma D, Seiberlich N, Gulani V, Griswold M. MR fingerprinting using fast imaging with steady state precession (FISP) with spiral readout. Magn Reson Med. 2015;74(6):spcone-spcone. doi:10.1002/mrm.26048
