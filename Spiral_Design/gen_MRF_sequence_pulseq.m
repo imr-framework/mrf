@@ -1,14 +1,18 @@
-clear
-clc
+function gen_MRF_sequence_pulseq()
 %This sequence is used for ISMRM 2019 abstract submission
 %This script uses pulseq to generate a sequence proposed in Jiang's paper[1].
 
-%[1] Jiang Y, Ma D, Seiberlich N, Gulani V, Griswold M. MR fingerprinting using 
-%fast imaging with steady state precession (FISP) with spiral readout. Magn Reson Med. 
+%[1] Jiang Y, Ma D, Seiberlich N, Gulani V, Griswold M. MR fingerprinting using
+%fast imaging with steady state precession (FISP) with spiral readout. Magn Reson Med.
 %2015;74(6):spcone-spcone. doi:10.1002/mrm.26048
+
 %% direct to pulseq folder
-addpath(genpath('../Toolbox/pulseq-master-1.2/pulseq-master/matlab'));
-addpath(genpath('.'))
+Pulseq = 'C:\Users\qiane\Desktop\Columbia\Toolbox\pulseq-master-1.2\pulseq-master\matlab';
+Data_Path = 'C:\Users\qiane\Desktop\Columbia\Research Materials\Programs\Enlin MRF code\Spiral_Design\Data';
+addpath(genpath('.'));
+addpath(genpath(Pulseq));
+addpath(genpath(Data_Path));
+os = 'pc';
 
 %% Set system limits
 gamma = 42576000; % in Hz %Determined from Pulseq - do not change,%Hz/T
@@ -25,7 +29,7 @@ RepeatTimes = ceil(total_acq/Cycle_len);
 fov=225e-3;
 Nx=256;% Ny=256;
 sliceThickness=5e-3;
-load('../Sample_Data/method_orig.mat')
+load('method_orig.mat')
 TR_all = method.VariableTR*1e-3;%converted to s
 TE_all = method.VariableTE*1e-3;%converted to s
 FA_all = method.VariableFlip+0.01;
@@ -96,14 +100,14 @@ for ds = 1:numfullim
     for ns=1:Nshots
         n = (ds-1)*Nshots+ns;
         if n <= 1000 %GE limitation, only 1000 acq point
-            delayTE = mr.calcDuration(gzReph) + (mr.calcDuration(rf_all(n))/2);        
+            delayTE = mr.calcDuration(gzReph) + (mr.calcDuration(rf_all(n))/2);
             %% Calculate timing
             delayTR= TR_all(n) - TE_all(n) - mr.calcDuration(gx)/2;
             delayTR = delayTR - mod(delayTR, 1e-5);
-        
+            
             delay1 = mr.makeDelay(delayTE);
             delay2 = mr.makeDelay(delayTR);
-        
+            
             seq.addBlock(rf_all(n),gz_all(n));
             seq.addBlock(gzReph);
             gx = mr.makeArbitraryGrad('x', squeeze(real(Gn(:,ns))),system);
@@ -117,11 +121,11 @@ for ds = 1:numfullim
 end
 disp(time/60);
 seq.plot('TimeRange',[0 3*0.014]);
-% fname = ['Spiral_2D_vari_1000_single_slice_Orig_Par', num2str(Nshots),'_',num2str(TE_all(1))];
-% seq.write([fname,'.seq']);
+fname = ['Spiral_2D_vari_1000_single_slice_Orig_Par', num2str(Nshots),'_',num2str(TE_all(1))];
+seq.write([fname,'.seq']);
 
 %% This part writes a method file for dictionary generation and parameters for image reconstruction
 % Save_kshot_dcf_ind(kshot, dcf, ind);
 % Save_TR_FA_TE(TR_all, FA_all, TE_all)
-
+end
 
