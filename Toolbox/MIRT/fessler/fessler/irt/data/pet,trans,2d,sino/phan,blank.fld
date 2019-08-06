@@ -1,9 +1,0 @@
-# AVS field file
-ndim=2
-dim1=160
-dim2=192
-nspace=2
-veclen=1
-data=xdr_float
-field=uniform
-variable 1 file=phan,blank.raw filetype=binary

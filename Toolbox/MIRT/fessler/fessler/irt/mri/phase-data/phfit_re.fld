@@ -1,9 +1,0 @@
-# header for phfit_re.raw
-# which has big endian floats
-ndim=2
-dim1=64
-dim2=64
-data=float_be
-veclen=1
-field=uniform
-variable 1 file=phfit_re.raw filetype=binary

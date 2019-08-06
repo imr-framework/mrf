@@ -1,4 +1,0 @@
-function clear(ob)
-
-printm 'trying to clear'
-keyboard
