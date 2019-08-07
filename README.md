@@ -9,8 +9,8 @@ This package contains five different parts. To use the package, please pull the 
 
 ## How to use the package
 #### Generate MRF sequence 
-1. Run **Spiral_Design/gen_MRF_sequence_pulseq.m**. 
-2. A MRF sequence based on Jiang's paper [1](https://www.ncbi.nlm.nih.gov/pubmed/25491018) is implemented using Pulseq framework, with flip angles and TR shown below. 
+1. Call **Spiral_Design/gen_MRF_sequence_pulseq.m**. The function returns parameters of the sequence.
+2. A MRF sequence based on Jiang's paper [1](https://www.ncbi.nlm.nih.gov/pubmed/25491018) is implemented using Pulseq framework.  
 3. The user should be able play the generated .seq file on a scanner with Pulseq interpreter installed. This sequence has been verified on a scanner by the author. 
 
 #### Generate EPG dictionary
