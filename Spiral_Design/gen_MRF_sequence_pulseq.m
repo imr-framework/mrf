@@ -1,12 +1,18 @@
 function [kshot, dcf, ind, TR_all, FA_all, TE_all] = gen_MRF_sequence_pulseq()
-%This script uses pulseq to generate a sequence proposed in Jiang's paper[1].
-%Input: none (the sequence is defined inside the for loop)
+%This script uses pulseq to generate a sequence proposed in Jiang's paper[1]
 % INPUT
 %       None  User does not need to input any parameter. All parameters for
-%             the sueqnece is pre set. 
+%             the sueqnece is pre set. If user wants to customize their own
+%             MRF sequence, please modify the double for loops starting at
+%             line 98 to add different blocks. 
 % 
 % OUTPUT
-%      kshot   
+%      kshot  Spiral trajector in k-space
+%        dcf  Density compensation function
+%        ind  Index (2nd dim) for k-space points on spiral 
+%     TR_all  All TRs used for the sequence.
+%     FA_all  All FAs used for the sequence.
+%     TE_all  All TEs used for the sequence. 
 
 %[1] Jiang Y, Ma D, Seiberlich N, Gulani V, Griswold M. MR fingerprinting using
 %fast imaging with steady state precession (FISP) with spiral readout. Magn Reson Med.
