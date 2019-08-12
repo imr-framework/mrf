@@ -1,18 +1,16 @@
-function gen_MRF_sequence_pulseq()
-%This sequence is used for ISMRM 2019 abstract submission
+function [kshot, dcf, ind, TR_all, FA_all, TE_all] = gen_MRF_sequence_pulseq()
 %This script uses pulseq to generate a sequence proposed in Jiang's paper[1].
+%Input: none (the sequence is defined inside the for loop)
+% INPUT
+%       None  User does not need to input any parameter. All parameters for
+%             the sueqnece is pre set. 
+% 
+% OUTPUT
+%      kshot   
 
 %[1] Jiang Y, Ma D, Seiberlich N, Gulani V, Griswold M. MR fingerprinting using
 %fast imaging with steady state precession (FISP) with spiral readout. Magn Reson Med.
 %2015;74(6):spcone-spcone. doi:10.1002/mrm.26048
-
-%% direct to pulseq folder
-Pulseq = 'C:\Users\qiane\Desktop\Columbia\Toolbox\pulseq-master-1.2\pulseq-master\matlab';
-Data_Path = 'C:\Users\qiane\Desktop\Columbia\Research Materials\Programs\Enlin MRF code\Spiral_Design\Data';
-addpath(genpath('.'));
-addpath(genpath(Pulseq));
-addpath(genpath(Data_Path));
-os = 'pc';
 
 %% Set system limits
 gamma = 42576000; % in Hz %Determined from Pulseq - do not change,%Hz/T
@@ -123,9 +121,5 @@ disp(time/60);
 seq.plot('TimeRange',[0 3*0.014]);
 fname = ['Spiral_2D_vari_1000_single_slice_Orig_Par', num2str(Nshots),'_',num2str(TE_all(1))];
 seq.write([fname,'.seq']);
-
-%% This part writes a method file for dictionary generation and parameters for image reconstruction
-% Save_kshot_dcf_ind(kshot, dcf, ind);
-% Save_TR_FA_TE(TR_all, FA_all, TE_all)
 end
 

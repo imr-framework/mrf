@@ -4,8 +4,6 @@ clear
 
 %% Design a sequence
 addpath(genpath('.'));
-% addpath(genpath('.\Spiral_Design\')) %add Spiral_Design and subfolders
-% addpath(genpath('.\')) %add Spiral_Design path and sublfolders
-gen_MRF_sequence_pulseq %generate MRF sequence
+[kshot, dcf, ind, TR_all, FA_all, TE_all] = gen_MRF_sequence_pulseq();
 
 %% Reconstruct image
