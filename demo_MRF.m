@@ -7,3 +7,4 @@ addpath(genpath('.'));
 [kshot, dcf, ind, TR_all, FA_all, TE_all] = gen_MRF_sequence_pulseq();
 
 %% Reconstruct image
+image_data_final_Complex = MRF_recon();
