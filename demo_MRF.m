@@ -8,3 +8,9 @@ addpath(genpath('.'));
 
 %% Reconstruct image
 image_data_final_Complex = MRF_recon();
+
+%% Dictionary simulation
+
+%% Dictionary matching
+
+%% ROI analysis tool
