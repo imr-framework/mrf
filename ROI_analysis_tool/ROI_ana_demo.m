@@ -10,7 +10,6 @@ clear
 % # Copyright of the Board of Trustees of Columbia University in the City of New York
 
 %% Load data
-addpath('Function')
-addpath('Data')
+addpath(genpath('.'))
 load('T2_map_rot30.mat')
 sphere_par = NIST_ROI_ana(T2_map_rot, 'T2', 128, 210);
