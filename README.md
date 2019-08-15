@@ -8,7 +8,7 @@
 This package contains five different parts. To use the package, please pull the complete mrf repository. 
 
 ## How to use the package
-#### Generate MRF sequence 
+#### Generate MRF Sequence 
 1. Call **Spiral_Design/gen_MRF_sequence_pulseq.m**. The function returns parameters of the sequence that are used in other parts of the    package
 2. A MRF sequence based on Jiang's paper [1] is implemented using Pulseq framework.  
 3. The user should be able play the generated .seq file on a scanner with Pulseq interpreter installed. This sequence has been verified    on a scanner by the author. 
@@ -17,15 +17,15 @@ This package contains five different parts. To use the package, please pull the 
 1. Run **Image_Reconstruction/MRF_recon.m**
 2. The script lets user select raw data file (.dat) from scanner and trajectory file (.mat) and reconstruct the image using sliding         window method and complex channel combination [2].  
 
-#### Generate EPG dictionary
+#### EPG Dictionary Simulation
 1. Call **EPG_dict_sim/EPGsim_MRF.m**.
-2. A dictionary is generated based on the input parameters range using Extend Phase Graph(EPG) [3] method.
+2. A dictionary is simulated based on the input parameters range using Extend Phase Graph(EPG) [3] method.
 
-#### Dictionary matching
+#### Dictionary Matching
 1. Call **Dictionary_Matching/MRF_Dic_Matching.m**.
 2. The script uses vector dot product to find the best matching dictionary entry and retrieves all parameters for that entry. 
 
-#### ROI analysis tool
+#### ROI Analysis Tool
 1. Call **ROI_analysis_tool/NIST_ROI_ana.m** .
 2. The function takes in the parameter maps of ISMRM/NIST phantom and return locations of spheres in correct orders.
 
