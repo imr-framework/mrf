@@ -3,6 +3,8 @@ clear
 
 %This script is used as a demo for dict_sim_MRF.m. All TR, FA, and TE are
 %loaded based on the sequence generated in Sequence Design part. 
+% 7/2019 Enlin Qian
+% # Copyright of the Board of Trustees of Columbia University in the City of New York
 addpath(genpath('.'));
 load('TR_TE_FA.mat')
 %% Dictionary Simulation
