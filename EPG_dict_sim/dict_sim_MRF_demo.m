@@ -1,14 +1,10 @@
-%% This script functions as a wrapper for all components of MRF package
 clc
-clear
+clear 
 
-%% Sequence Design
+%This script is used as a demo for dict_sim_MRF.m. All TR, FA, and TE are
+%loaded based on the sequence generated in Sequence Design part. 
 addpath(genpath('.'));
-[kshot, dcf, ind, TR_all, FA_all, TE_all] = gen_MRF_sequence_pulseq();
-
-%% Image Reconstruction
-image_data_final_Complex = MRF_recon();
-
+load('TR_TE_FA.mat')
 %% Dictionary Simulation
 phis = zeros(1,1001); % the sequence starts with a 180 pulse, thus 1001 points
 alphas = [180, FA_all']; % all flip angles
@@ -25,6 +21,3 @@ for n1 = 1:length(T1_range)
         n3=n3+1;
     end
 end
-%% Dictionary Matching
-
-%% ROI Analysis Tool
