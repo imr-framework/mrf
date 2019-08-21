@@ -11,8 +11,13 @@ load('TR_TE_FA.mat')
 phis = zeros(1,1001); % the sequence starts with a 180 pulse, thus 1001 points
 alphas = [180, FA_all']; % all flip angles
 TRs = [18, TR_all'.*1000]; % all TRs, in ms
-T1_range=20:20:2000; 
-T2_range=5:20:600; 
+T1_range=0.02:0.005:0.065;
+T1_range=[T1_range, 0.09:0.03:0.36];
+T1_range=[T1_range, 0.5:0.1:4];
+T2_range=0.005:0.002:0.011;
+T2_range=[T2_range, 0.015:0.005:0.045];
+T2_range=[T2_range, 0.065:0.03:0.275];
+T2_range=[T2_range, 0.4:0.1:2];
 n3 = 1;
 Echo_Final=zeros(length(T1_range)*length(T2_range), 1000);
 for n1 = 1:length(T1_range)
