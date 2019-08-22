@@ -93,6 +93,6 @@ qmap(mask>0,:) = dict.lut(dm,:);
 qmap(isnan(qmap)) = 0; %remove possible NaN from infeasible search window
 out.qmap = reshape(qmap,[datadims(1:end-1),Q]);
 out.mask = mask;
-figure; imagesc(abs(squeeze(out.qmap(:,:,1)))); axis equal tight; colormap hot;
-figure; imagesc(abs(squeeze(out.qmap(:,:,2)))); axis equal tight; colormap hot;
+figure; imagesc(abs(squeeze(out.qmap(:,:,1)))); axis equal tight; colormap hot; title('T1 map');
+figure; imagesc(abs(squeeze(out.qmap(:,:,2)))); axis equal tight; colormap hot; title('T2 map');
 end
