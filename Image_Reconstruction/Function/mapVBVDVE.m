@@ -1,12 +1,29 @@
 function [twix_obj version] = mapVBVDVE(filename,varargin)
-
-%  Reads Siemens raw .dat file from VB/VD MRI raw data.
+% This script reads Siemens raw .dat file from VB/VD MRI raw data.
+% Requires twix_map_obj.m
 %
-%  Requires twix_map_obj.m
+% Created by Philipp Ehses (philipp.ehses@tuebingen.mpg.de)
+% INPUT
+%        filename or simply meas. id, e.g. mapVBVD(122) (if file is in same path)
+%        optional arguments (see below)
 %
-%  Author: Philipp Ehses (philipp.ehses@tuebingen.mpg.de)
-%
-%
+% OUTPUT 
+%     twix_obj:       structure with elements (if available):
+%     .image:         image scan
+%     .noise:         for noise scan
+%     .phasecor:      phase correction scan
+%     .phasestab:     phase stabilization scan
+%     .phasestabRef0: phase stab. ref. (MDH_REFPHASESTABSCAN && !MDH_PHASESTABSCAN)
+%     .phasestabRef1: phase stab. ref. (MDH_REFPHASESTABSCAN &&  MDH_PHASESTABSCAN)
+%     .refscan:       parallel imaging reference scan
+%     .refscanPC:     phase correction scan for reference data
+%     .refscanPS:     phase stabilization scan for reference data
+%     .refscanPSRef0: phase stab. ref scan for reference data
+%     .refscanPSRef1: phase stab. ref scan for reference data
+%     .RTfeedback:    realtime feedback data
+%     .vop:           vop rf data
+% 
+% HISTORY
 %  Philipp Ehses 11.02.07, original version
 %  [..]
 %  Philipp Ehses 22.03.11, port to VD11
@@ -44,27 +61,6 @@ function [twix_obj version] = mapVBVDVE(filename,varargin)
 %                          * => Parsing speed improved by factor 3...7 or so
 %                          * Speed increase for reading data, esp. when slicing,
 %                            os-removal or reflected lines. Also for random acquisitions.
-%
-%
-% Input:
-%
-% filename or simply meas. id, e.g. mapVBVD(122) (if file is in same path)
-% optional arguments (see below)
-%
-% Output: twix_obj structure with elements (if available):
-%     .image:         image scan
-%     .noise:         for noise scan
-%     .phasecor:      phase correction scan
-%     .phasestab:     phase stabilization scan
-%     .phasestabRef0: phase stab. ref. (MDH_REFPHASESTABSCAN && !MDH_PHASESTABSCAN)
-%     .phasestabRef1: phase stab. ref. (MDH_REFPHASESTABSCAN &&  MDH_PHASESTABSCAN)
-%     .refscan:       parallel imaging reference scan
-%     .refscanPC:     phase correction scan for reference data
-%     .refscanPS:     phase stabilization scan for reference data
-%     .refscanPSRef0: phase stab. ref scan for reference data
-%     .refscanPSRef1: phase stab. ref scan for reference data
-%     .RTfeedback:    realtime feedback data
-%     .vop:           vop rf data
 %
 %
 % The raw data can be obtained by calling e.g. twix_obj.image() or for
@@ -119,7 +115,7 @@ function [twix_obj version] = mapVBVDVE(filename,varargin)
 % These flags can also be set/unset later, e.g "twix_obj.image.flagRemoveOS = 1"
 %
 %
-% Examples:
+% EXAMPLE
 %   twix_obj = mapVBVD(measID);
 %
 %   % return all image-data:

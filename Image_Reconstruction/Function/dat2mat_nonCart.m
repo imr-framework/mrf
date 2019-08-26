@@ -1,23 +1,19 @@
 function [kspace_data]= dat2mat_nonCart()
+% This script reads in .dat raw data and convert it to kspace data.
+% IUPUT
+%      None  the user is asked to select a .dat raw data file 
+%
+% OUTPUT
+% ksapce_data  kspace data
+%
+% Created 8/2013 Sairam Geethanath
+% Modified 7/2019 Enlin Qian
+% # Copyright of the Board of Trustees of Columbia University in the City of New York
 
-
-%% Author - Sairam Geethanath
-% Date 20130824
-% Input - *.dat file
-% Output - Kspace, Image space
-% We may have to have a relook at this code after ISMRM 2014 due to its
-% rigidity for N x N acquisitions
-
-
-%% Modification history
-% to make it generic - remove hardcoding
-% 06/09/2014
 %% Obtain the file
 [Filename,Pathname] = uigetfile('*.dat','Pick the raw data file');
 
-
 %% Read data using mapVBVD
-% image_obj = mapVBVD(fullfile(Pathname,Filename));
 twix_obj = mapVBVDVE(fullfile(Pathname,Filename));
 
 % image_obj = twix_obj.image; %Body coil

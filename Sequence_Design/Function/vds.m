@@ -28,7 +28,7 @@ function [k,g,s,time,r,theta] = vds(smax,gmax,T,N,Fcoeff,rmax)
 %	   r  k-space radius vs time (used to design spiral)
 %  theta  atan2(ky,kx) = k-space angle vs time.
 %
-% METHODS
+% METHOD
 % Let r1 and r2 be the first derivatives of r in [1].	
 % Let q1 and q2 be the first derivatives of theta in [1].	
 % Also, r0 = r, and q0 = theta - sometimes both are used.
@@ -87,26 +87,26 @@ function [k,g,s,time,r,theta] = vds(smax,gmax,T,N,Fcoeff,rmax)
 %
 %	See also:  vds2.m,  vdsmex.m,  vds.c
 %
-% =============== CVS Log Messages ==========================
-%	$Log: vds.m,v $
-%	Revision 1.5  2004/04/27 18:08:44  brian
-%	Changed FOV to a polynomial of unlimited length,
-%	and hopefully changed all comments accordingly.
-%	Also moved sub-functions into vds.m so that
-%	no other .m files are needed.
+% HISTORY
+% $Log: vds.m,v $
+% Revision 1.5  2004/04/27 18:08:44  brian
+% Changed FOV to a polynomial of unlimited length,
+% and hopefully changed all comments accordingly.
+% Also moved sub-functions into vds.m so that
+% no other .m files are needed.
 %	
-%	Revision 1.4  2003/09/16 02:55:52  brian
-%	minor edits
+% Revision 1.4  2003/09/16 02:55:52  brian
+% minor edits
 %	
-%	Revision 1.3  2002/11/18 05:36:02  brian
-%	Rounds lengths to a multiple of 4 to avoid
-%	frame size issues later on.
+% Revision 1.3  2002/11/18 05:36:02  brian
+% Rounds lengths to a multiple of 4 to avoid
+% frame size issues later on.
 %	
-%	Revision 1.2  2002/11/18 05:32:19  brian
-%	minor edits
+% Revision 1.2  2002/11/18 05:32:19  brian
+% minor edits
 %	
-%	Revision 1.1  2002/03/28 01:03:20  bah
-%	Added to CVS
+% Revision 1.1  2002/03/28 01:03:20  bah
+% Added to CVS
 
 disp('vds.m');
 gamma = 4258;

@@ -10,6 +10,8 @@ function image_data_final_Complex = MRF_recon()
 %
 % OUTPUT
 % image_data_final_Complex   Reconstructed images.
+% 7/2019 Enlin Qian
+% # Copyright of the Board of Trustees of Columbia University in the City of New York
 %
 % some variables: dim1: size of original raw data
 % dim2: size of concatenated raw data
