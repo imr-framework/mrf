@@ -1,6 +1,6 @@
 function NIST_std_par = gen_NIST_std_par(map_type, map_size, fov)
-%Input map parameters and return phantom parameters based on map type, map
-%size and fov. 
+% Input map parameters and return phantom parameters based on map type, map
+% size and fov. 
 % INPUT
 %   map_type  type of map (T1 or T2)
 %   map_size  size of map, for example, 128 means the map size is 128x128

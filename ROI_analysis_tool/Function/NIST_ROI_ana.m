@@ -1,7 +1,7 @@
 function sphere_par = NIST_ROI_ana(map_data, map_type, map_size, fov)
-%Input map mat file and return ROI analysis of a ISMRM/NIST phantom, all 
-%14 spheres are detected. Their locations, radius, mean, and std are
-%returned in correct order. 
+% Input map mat file and return ROI analysis of a ISMRM/NIST phantom, all 
+% 14 spheres are detected. Their locations, radius, mean, and std are
+% returned in correct order. 
 % INPUT
 %   map_data  parameter map, unit should be in second 
 %   map_type  type of map (T1 or T2)

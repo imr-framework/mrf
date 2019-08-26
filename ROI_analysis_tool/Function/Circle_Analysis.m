@@ -1,6 +1,6 @@
 function [CircleMap, PointsIndex] = Circle_Analysis(Center, Radius, ImXSize, ImYSize)
-%Input center, radius, and map size and return index of pixels inside the
-%circle.
+% Input center, radius, and map size and return index of pixels inside the
+% circle.
 % INPUT
 %     Center  Center of circle [x, y]
 %     Radius  Radius of circle (in pixels)
@@ -9,7 +9,8 @@ function [CircleMap, PointsIndex] = Circle_Analysis(Center, Radius, ImXSize, ImY
 %
 % OUTPUT
 %  CircleMap  Binary map for each circle
-%PointsIndex  Pixel index for all pixels inside input circle
+% PointsIndex  Pixel index for all pixels inside input circle
+%
 % 7/2019 Enlin Qian
 % # Copyright of the Board of Trustees of Columbia University in the City of New York
 % (x,y) = (colum, row)

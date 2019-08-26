@@ -1,6 +1,6 @@
 function NIST_sphere_loc = gen_NIST_sphere_loc(map_type, map_size, fov, Sphere1_center)
-%Input map parameters and Sphere 1 loc to generate a map that finds all
-%locations of other spheres.
+% Input map parameters and Sphere 1 loc to generate a map that finds all
+% locations of other spheres.
 % INPUT
 %   map_type  type of map (T1 or T2)
 %   map_size  size of map, for example, 128 means the map size is 128x128
