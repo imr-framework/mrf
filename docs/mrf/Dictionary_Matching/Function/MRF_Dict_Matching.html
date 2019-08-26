@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of MRF_Dict_Matching</title>
+  <meta name="keywords" content="MRF_Dict_Matching">
+  <meta name="description" content="% This function is a re-implementation based on P. Gomez's code">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html Dictionary_Matching --><!-- menu.html Function -->
+<h1>MRF_Dict_Matching
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>% This function is a re-implementation based on P. Gomez's code</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function out = MRF_Dict_Matching(dict, data) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% This function is a re-implementation based on P. Gomez's code
+This script uses vector dot product to find the most similar entry inside
+a dictionary and retrieve the parameters from that dictionary.
+ INPUT
+  dict  Dictionary file
+  data  Reconstructed data file
+ 
+ OUTPUT
+   out  An output structure that contains T1 and T2 maps 
+
+ 7/2019 Enlin Qian
+ # Copyright of the Board of Trustees of Columbia University in the City of New York
+% Reshape data</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../mrf/Dictionary_Matching/MRF_dict_matching_demo.html" class="code" title="">MRF_dict_matching_demo</a>	This script is used as a demo for MRF_Dict_Matching.m. The function takes in a</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = MRF_Dict_Matching(dict, data)</a>
+0002 <span class="comment">%% This function is a re-implementation based on P. Gomez's code</span>
+0003 <span class="comment">%This script uses vector dot product to find the most similar entry inside</span>
+0004 <span class="comment">%a dictionary and retrieve the parameters from that dictionary.</span>
+0005 <span class="comment">% INPUT</span>
+0006 <span class="comment">%  dict  Dictionary file</span>
+0007 <span class="comment">%  data  Reconstructed data file</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% OUTPUT</span>
+0010 <span class="comment">%   out  An output structure that contains T1 and T2 maps</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% 7/2019 Enlin Qian</span>
+0013 <span class="comment">% # Copyright of the Board of Trustees of Columbia University in the City of New York</span>
+0014 <span class="comment">%% Reshape data</span>
+0015 iz = 1;
+0016 [ix,iy,T] = size(data);
+0017 datadims = [ix,iy,T];
+0018 N = ix*iy*iz;
+0019 x = reshape(data,[N,T]);
+0020 mask = ones(datadims(1:end-1)) &gt; 0;
+0021 x = single(x(mask&gt;0,:));
+0022 
+0023 <span class="comment">%% Reading in dictionary and checking fields in dictionary</span>
+0024 D = dict.D;
+0025 <span class="keyword">if</span> isfield(dict,<span class="string">'normD'</span>); normD = dict.normD; <span class="keyword">end</span>
+0026 <span class="keyword">if</span> ~isfield(dict,<span class="string">'lut'</span>)
+0027     error(<span class="string">'dict.lut required for parameter estimation'</span>);
+0028 <span class="keyword">end</span>
+0029 <span class="keyword">if</span> ~exist(<span class="string">'normD'</span>,<span class="string">'var'</span>)
+0030     warning(<span class="string">'normD not found, normalizing dictionary \n'</span>);
+0031     normD = zeros(1,size(D,1));
+0032     <span class="keyword">for</span> l = 1:size(D,1)
+0033         normD(l)=norm(D(l,:));
+0034         D(l,:)=D(l,:)/normD(l);
+0035     <span class="keyword">end</span>
+0036     D(isnan(D))=0;
+0037 <span class="keyword">end</span>
+0038 
+0039 <span class="keyword">for</span> n1 = 1:size(D,1)
+0040     temp1 = D(n1,:);
+0041     temp2 = x(n1,:);
+0042     temp1 = temp1./max(temp1(:));
+0043     temp2 = temp2./max(temp2(:));
+0044     D(n1,:) = temp1;
+0045     x(n1,:) = temp2;
+0046 <span class="keyword">end</span>
+0047 
+0048 <span class="comment">%% Setting up parameters for dic matching</span>
+0049 S = whos(<span class="string">'x'</span>);
+0050 dataBytes = S.bytes;
+0051 mem = memory;
+0052 percentageOfUse = 0.6;
+0053 memPercentage = mem.MemAvailableAllArrays * percentageOfUse;
+0054 blockSize = memPercentage/dataBytes;
+0055 
+0056 <span class="comment">%% Dictionary Matching</span>
+0057 blockSize = min(max(floor(blockSize/size(D,1)),1),size(x,1));
+0058 iter = ceil(size(x,1)/blockSize);
+0059 mt = zeros(size(x,1),1);
+0060 dm = zeros(size(x,1),1);
+0061 pd = zeros(size(x,1),1);
+0062 X = zeros(size(x));
+0063 fprintf(<span class="string">'Matching data \n'</span>);
+0064 maxDict =  max(dict.D,[],2);
+0065 dtemp = abs(dict.D./maxDict);
+0066 <span class="keyword">for</span> i = 1: iter
+0067     <span class="keyword">if</span>(mod(i,1000) ==0)
+0068         disp(i)
+0069     <span class="keyword">end</span>
+0070     <span class="keyword">if</span> i&lt;iter
+0071         cind = (i-1)*blockSize+1:i*blockSize;
+0072     <span class="keyword">else</span>
+0073         cind = (i-1)*blockSize+1:size(x,1);
+0074     <span class="keyword">end</span>
+0075     xtemp = x(cind,:)./max(abs(x(cind,:)));
+0076     ip = zeros(1,size(D,1));
+0077     <span class="keyword">for</span> m = 1:size(D,1)
+0078         ip(m) = sum(abs(dtemp(m, :).^2 - xtemp.^2));
+0079     <span class="keyword">end</span>
+0080     [mt(cind),dm(cind)] = min(abs(ip.'),[],1);
+0081     <span class="keyword">if</span>(mod(i, 100)==0)
+0082         disp(i);
+0083         disp(dm(cind));
+0084     <span class="keyword">end</span>
+0085 <span class="keyword">end</span>
+0086 clear match;
+0087 clear dictentry;
+0088 
+0089 <span class="comment">%% Generate output</span>
+0090 Q=6;
+0091 dm(dm==0) =1;
+0092 dict.lut(1,:) =0;
+0093 
+0094 qmap = zeros(N,Q,<span class="string">'single'</span>);
+0095 qmap(mask&gt;0,:) = dict.lut(dm,:);
+0096 qmap(isnan(qmap)) = 0; <span class="comment">%remove possible NaN from infeasible search window</span>
+0097 out.qmap = reshape(qmap,[datadims(1:end-1),Q]);
+0098 out.mask = mask;
+0099 figure; imagesc(abs(squeeze(out.qmap(:,:,1)))); axis equal tight; colormap hot; title(<span class="string">'T1 map'</span>);
+0100 figure; imagesc(abs(squeeze(out.qmap(:,:,2)))); axis equal tight; colormap hot; title(<span class="string">'T2 map'</span>);
+0101 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

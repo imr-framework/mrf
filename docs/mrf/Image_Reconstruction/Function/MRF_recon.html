@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of MRF_recon</title>
+  <meta name="keywords" content="MRF_recon">
+  <meta name="description" content="This script uses sliding window method and complex coil combination to">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html Image_Reconstruction --><!-- menu.html Function -->
+<h1>MRF_recon
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>This script uses sliding window method and complex coil combination to</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function image_data_final_Complex = MRF_recon() </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> This script uses sliding window method and complex coil combination to
+ reconstruct .dat raw data and trajectory file. This script requires MiRT
+ toolbox, visit their websites for more information:
+ https://web.eecs.umich.edu/~fessler/code/
+ IUPUT
+       None  User does not need to input any parameter. The script will
+       ask for raw data and trajectory file. The trajectory file is
+       attached as K_Traj4rec.matin Sample_Data folder.
+
+ OUTPUT
+ image_data_final_Complex   Reconstructed images.
+ 7/2019 Enlin Qian
+ # Copyright of the Board of Trustees of Columbia University in the City of New York
+
+ some variables: dim1: size of original raw data
+ dim2: size of concatenated raw data
+ dim3: size of ktrajectory data
+ dim4: size of concatenated raw data after cutting rewinders</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="Complex_Chan_Combining.html" class="code" title="function coil_filter = Complex_Chan_Combining(image1)">Complex_Chan_Combining</a>	This script correct phase differences in each coil using method in [1].</li><li><a href="dat2mat_nonCart.html" class="code" title="function [kspace_data]= dat2mat_nonCart()">dat2mat_nonCart</a>	This script reads in .dat raw data and convert it to kspace data.</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../mrf/Image_Reconstruction/MRF_recon_demo.html" class="code" title="">MRF_recon_demo</a>	</li><li><a href="../../../mrf/demo_MRF.html" class="code" title="">demo_MRF</a>	% This script functions as a wrapper for all components of MRF package</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function image_data_final_Complex = MRF_recon()</a>
+0002 <span class="comment">% This script uses sliding window method and complex coil combination to</span>
+0003 <span class="comment">% reconstruct .dat raw data and trajectory file. This script requires MiRT</span>
+0004 <span class="comment">% toolbox, visit their websites for more information:</span>
+0005 <span class="comment">% https://web.eecs.umich.edu/~fessler/code/</span>
+0006 <span class="comment">% IUPUT</span>
+0007 <span class="comment">%       None  User does not need to input any parameter. The script will</span>
+0008 <span class="comment">%       ask for raw data and trajectory file. The trajectory file is</span>
+0009 <span class="comment">%       attached as K_Traj4rec.matin Sample_Data folder.</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% OUTPUT</span>
+0012 <span class="comment">% image_data_final_Complex   Reconstructed images.</span>
+0013 <span class="comment">% 7/2019 Enlin Qian</span>
+0014 <span class="comment">% # Copyright of the Board of Trustees of Columbia University in the City of New York</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% some variables: dim1: size of original raw data</span>
+0017 <span class="comment">% dim2: size of concatenated raw data</span>
+0018 <span class="comment">% dim3: size of ktrajectory data</span>
+0019 <span class="comment">% dim4: size of concatenated raw data after cutting rewinders</span>
+0020 
+0021 
+0022 <span class="comment">%% This stage takes in a .dat raw data file and outputs .mat file.</span>
+0023 acquired_raw_data = <a href="dat2mat_nonCart.html" class="code" title="function [kspace_data]= dat2mat_nonCart()">dat2mat_nonCart</a>();<span class="comment">%extract .dat information</span>
+0024 <span class="comment">%the second dim of acquired data is acquired points, 4th dim is partition number</span>
+0025 dim1 = size(acquired_raw_data);
+0026 acquired_points = dim1(2);
+0027 acquired_raw_data_con = zeros(dim1(1)*dim1(4),dim1(2),dim1(3));<span class="comment">%preallocate concatenated raw data</span>
+0028 <span class="keyword">for</span> n1 = 1:dim1(2)
+0029     <span class="keyword">for</span> n2 = 1:dim1(3)
+0030         acquired_raw_data_con(:,n1,n2) = [acquired_raw_data(:,n1,n2,1);<span class="keyword">...</span>
+0031             acquired_raw_data(:,n1,n2,2)];<span class="comment">%concatenate second partition with first partition</span>
+0032     <span class="keyword">end</span>
+0033 <span class="keyword">end</span>
+0034 dim2 = size(acquired_raw_data_con);
+0035 
+0036 <span class="comment">%% Stage 2, load spiral data</span>
+0037 [baseFileName,folder] = uigetfile(<span class="string">'*.mat'</span>,<span class="string">'Pick the trajectory file'</span>);
+0038 fullFileName = fullfile(folder, baseFileName);
+0039 load(fullFileName)
+0040 dim3 = size(traj);
+0041 kshots = dim3(2);
+0042 <span class="comment">% check if acquired raw data has rewinders</span>
+0043 <span class="keyword">if</span> dim2(1)&gt;dim3(1) <span class="comment">%if concatenated raw data is longer than trajectory file, cut the rewinders in the end</span>
+0044     acquired_raw_data_con = acquired_raw_data_con(1:dim3(1),:,:); <span class="comment">%cut the rewinders</span>
+0045     <span class="comment">% the raw data should have same length as trajectory data, the data</span>
+0046     <span class="comment">% acquired at rewinder is useless</span>
+0047 <span class="keyword">end</span>
+0048 
+0049 non_zero_loc = find(ind(1,:));
+0050 trunc = non_zero_loc(1)+1;
+0051 acquired_raw_data_con = circshift(acquired_raw_data_con,-trunc); <span class="comment">%remove the offset at beginning</span>
+0052 acquired_raw_data_con(end-trunc+1:<span class="keyword">end</span>, :,:) = 0; <span class="comment">% add same length of zeros at end</span>
+0053 dim4 = size(acquired_raw_data_con);
+0054 ktraj = repmat(traj,[1,ceil(acquired_points/kshots),1]);
+0055 ktraj = ktraj(:,1:acquired_points,:);<span class="comment">%repmat spiral data, check first spiral and 49 spiral</span>
+0056 
+0057 
+0058 <span class="comment">%% Stage 3, multiply dcf with raw data</span>
+0059 acquired_raw_data_final = zeros(dim4);
+0060 acquired_raw_data_con2 = acquired_raw_data_con;
+0061 
+0062 dcf_repmat = repmat(reshape(dcf,dim3(1:2)),[1 ceil(acquired_points/kshots)]);
+0063 dcf_repmat = dcf_repmat(:,1:acquired_points);
+0064 <span class="keyword">for</span> n3 = 1:dim2(3)
+0065     acquired_raw_data_final(:,:,n3) = acquired_raw_data_con2(:,:,n3).*dcf_repmat;
+0066     <span class="comment">%multiplying with dcf for each channel</span>
+0067 <span class="keyword">end</span>
+0068 
+0069 <span class="comment">%% Stage 4, sliding windows</span>
+0070 Jd = [5,5]; Nd = [256,256]; Kd =Nd.*2;
+0071 image_data_final = zeros(Nd(1),Nd(2),dim2(3),acquired_points);
+0072 image_data_final_Complex = zeros(Nd(1),Nd(2),acquired_points);
+0073 <span class="comment">% setting up parameters for nufft</span>
+0074 
+0075 tic
+0076 
+0077 <span class="keyword">for</span> n4 = 1:acquired_points<span class="comment">%total # of images generated by sliding windows</span>
+0078     kshot_win = floor(kshots.*0.5);
+0079     disp (n4)
+0080     SelectedRange = (n4-kshot_win-1):(n4+kshot_win-2);
+0081     SelectedRange = SelectedRange(SelectedRange &gt; 0 &amp; SelectedRange &lt;= acquired_points);
+0082     
+0083     ktraj_temp = ktraj(:,SelectedRange,:); <span class="comment">%recounstruct using full 48 spirals or partial spirals</span>
+0084     ktraj_temp = reshape(ktraj_temp,[],2).*1e-3; <span class="comment">%multiply by 1e3 for phantom data from Sravan, but 1e-3 for my data</span>
+0085     om = squeeze(ktraj_temp.*2.*pi);
+0086     st = nufft_init(om, Nd, Jd, Kd, Nd/2, <span class="string">'minmax:kb'</span>);
+0087     
+0088     <span class="keyword">for</span> n5 = 1:dim2(3)
+0089         acquired_raw_data_temp = acquired_raw_data_final(:,SelectedRange,n5);
+0090         acquired_raw_data_temp = reshape(acquired_raw_data_temp,[],1);
+0091         image_data_final(:,:,n5,n4) = nufft_adj(acquired_raw_data_temp,st);
+0092     <span class="keyword">end</span>
+0093     sens = <a href="Complex_Chan_Combining.html" class="code" title="function coil_filter = Complex_Chan_Combining(image1)">Complex_Chan_Combining</a>(image_data_final(:,:,:,n4));
+0094     imtemp2 = squeeze(sum(bsxfun(@times,conj(sens),image_data_final(:,:,:,n4)),3));
+0095     
+0096     figure(101);
+0097     imagesc(abs(imtemp2));xlabel(num2str(n4));
+0098     caxis auto;
+0099     axis equal tight;
+0100     colormap gray;
+0101     drawnow;
+0102     
+0103     
+0104     image_data_final_Complex(:, :, n4) = imtemp2;
+0105 <span class="keyword">end</span>
+0106 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

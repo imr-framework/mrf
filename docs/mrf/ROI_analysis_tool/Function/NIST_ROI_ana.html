@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of NIST_ROI_ana</title>
+  <meta name="keywords" content="NIST_ROI_ana">
+  <meta name="description" content="Input map mat file and return ROI analysis of a ISMRM/NIST phantom, all">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html ROI_analysis_tool --><!-- menu.html Function -->
+<h1>NIST_ROI_ana
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>Input map mat file and return ROI analysis of a ISMRM/NIST phantom, all</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function sphere_par = NIST_ROI_ana(map_data, map_type, map_size, fov) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> Input map mat file and return ROI analysis of a ISMRM/NIST phantom, all 
+ 14 spheres are detected. Their locations, radius, mean, and std are
+ returned in correct order. 
+ INPUT
+   map_data  parameter map, unit should be in second 
+   map_type  type of map (T1 or T2)
+   map_size  size of map, for example, 128 means the map size is 128x128
+        fov  field of view                                  [mm]
+ 
+ OUTPUT
+   sphere_par  circle parameters. It has four fields which contain sphere
+               locations, radius, mean, and std in correct order. 
+
+ 7/2019 Enlin Qian
+ # Copyright of the Board of Trustees of Columbia University in the City of New York</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="Circle_Analysis.html" class="code" title="function [CircleMap, PointsIndex] = Circle_Analysis(Center, Radius, ImXSize, ImYSize)">Circle_Analysis</a>	Input center, radius, and map size and return index of pixels inside the</li><li><a href="gen_NIST_sphere_loc.html" class="code" title="function NIST_sphere_loc = gen_NIST_sphere_loc(map_type, map_size, fov, Sphere1_center)">gen_NIST_sphere_loc</a>	Input map parameters and Sphere 1 loc to generate a map that finds all</li><li><a href="gen_NIST_std_par.html" class="code" title="function NIST_std_par = gen_NIST_std_par(map_type, map_size, fov)">gen_NIST_std_par</a>	Input map parameters and return phantom parameters based on map type, map</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../mrf/ROI_analysis_tool/ROI_ana_demo.html" class="code" title="">ROI_ana_demo</a>	</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function sphere_par = NIST_ROI_ana(map_data, map_type, map_size, fov)</a>
+0002 <span class="comment">% Input map mat file and return ROI analysis of a ISMRM/NIST phantom, all</span>
+0003 <span class="comment">% 14 spheres are detected. Their locations, radius, mean, and std are</span>
+0004 <span class="comment">% returned in correct order.</span>
+0005 <span class="comment">% INPUT</span>
+0006 <span class="comment">%   map_data  parameter map, unit should be in second</span>
+0007 <span class="comment">%   map_type  type of map (T1 or T2)</span>
+0008 <span class="comment">%   map_size  size of map, for example, 128 means the map size is 128x128</span>
+0009 <span class="comment">%        fov  field of view                                  [mm]</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% OUTPUT</span>
+0012 <span class="comment">%   sphere_par  circle parameters. It has four fields which contain sphere</span>
+0013 <span class="comment">%               locations, radius, mean, and std in correct order.</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% 7/2019 Enlin Qian</span>
+0016 <span class="comment">% # Copyright of the Board of Trustees of Columbia University in the City of New York</span>
+0017 
+0018 <span class="comment">%% Check inputs</span>
+0019 <span class="keyword">if</span> ~exist(<span class="string">'map_data'</span>,<span class="string">'var'</span>), error(<span class="string">'No map data is found'</span>); <span class="keyword">end</span>
+0020 <span class="keyword">if</span> ~exist(<span class="string">'map_type'</span>,<span class="string">'var'</span>), error(<span class="string">'No map type is found'</span>); <span class="keyword">end</span>
+0021 <span class="keyword">if</span> map_size&lt;1, warning(<span class="string">'dcs:map_size'</span>,<span class="string">'map_size(=%g)&lt;1'</span>,map_size); input(<span class="string">''</span>); <span class="keyword">end</span>
+0022 <span class="keyword">if</span> fov&lt;1, warning(<span class="string">'dcs:fov'</span>,<span class="string">'fov(=%g)&lt;1'</span>,fov); input(<span class="string">''</span>); <span class="keyword">end</span>
+0023 
+0024 <span class="comment">%% Load standard parameters for ISMRM/NIST phantom</span>
+0025 NIST_std_par = <a href="gen_NIST_std_par.html" class="code" title="function NIST_std_par = gen_NIST_std_par(map_type, map_size, fov)">gen_NIST_std_par</a>(map_type, map_size, fov);
+0026 
+0027 <span class="comment">%% Threshold Sphere 1 based on intensity</span>
+0028 map_binary = map_data&gt;=NIST_std_par.intensity_range(1) &amp; map_data&lt;=NIST_std_par.intensity_range(2);
+0029 
+0030 <span class="comment">%% Initial guess of circles to find Sphere 1</span>
+0031 [guess_center,guess_radii] = imfindcircles(map_binary,NIST_std_par.sphere_radius,<span class="keyword">...</span>
+0032     <span class="string">'Sensitivity'</span>,0.95); 
+0033 
+0034 <span class="comment">%% Visualize initial guess of Sphere 1</span>
+0035 figure;imagesc(map_data); colormap hot; axis equal tight;
+0036 viscircles(guess_center, guess_radii);
+0037 
+0038 <span class="comment">%% If only 1 sphere is detected, if yes, use the circle, if no, pick the one closest to true value</span>
+0039 num_guess = size(guess_center, 1);
+0040 <span class="keyword">if</span> num_guess == 1
+0041     Sphere1_center = guess_center;
+0042     Sphere1_radii = guess_radii;
+0043 <span class="keyword">else</span>
+0044     Mean_all = zeros(num_guess, 1);
+0045     <span class="keyword">for</span> n = 1: num_guess
+0046         [~, PointsIndex] = <a href="Circle_Analysis.html" class="code" title="function [CircleMap, PointsIndex] = Circle_Analysis(Center, Radius, ImXSize, ImYSize)">Circle_Analysis</a>(guess_center(n, :), guess_radii(n), map_size, map_size);
+0047         Mean_all(n) = mean(map_data(PointsIndex));
+0048     <span class="keyword">end</span>
+0049     [~, Index] = min(abs(Mean_all - NIST_std_par.true_value(1)));
+0050     Sphere1_center = guess_center(Index, :);
+0051     Sphere1_radii = guess_radii(Index);
+0052 <span class="keyword">end</span>
+0053 
+0054 <span class="comment">%% Find all template sphere locations based on Sphere 1 location</span>
+0055 NIST_sphere_loc = <a href="gen_NIST_sphere_loc.html" class="code" title="function NIST_sphere_loc = gen_NIST_sphere_loc(map_type, map_size, fov, Sphere1_center)">gen_NIST_sphere_loc</a>(map_type, map_size, fov, Sphere1_center);
+0056 
+0057 <span class="comment">%% Visualize the template (without rotation)</span>
+0058 <span class="comment">% figure;imagesc(map_data); colormap hot; axis equal tight;</span>
+0059 <span class="comment">% viscircles(NIST_sphere_loc.template_loc, repmat(Sphere1_radii, NIST_sphere_loc.num_spheres, 1));</span>
+0060 
+0061 <span class="comment">%% Calculate transformation matrix for rotation</span>
+0062 rot_center = NIST_sphere_loc.temp_rot_center;
+0063 template_vec = [NIST_sphere_loc.template_Sphere1_loc(1)-NIST_sphere_loc.temp_rot_center(1),<span class="keyword">...</span>
+0064     NIST_sphere_loc.template_Sphere1_loc(2)-NIST_sphere_loc.temp_rot_center(2)]; <span class="comment">% Vector for template</span>
+0065 map_vec = [Sphere1_center(1)-rot_center(1), Sphere1_center(2)-rot_center(2)]; <span class="comment">% Vector for image data</span>
+0066 rot_angle = acosd(dot(template_vec,map_vec)/(norm(template_vec)*norm(map_vec))); <span class="comment">% Find the angle between two vectors</span>
+0067 trans_matrix = [cosd(rot_angle), -sind(rot_angle);
+0068                 sind(rot_angle), cosd(rot_angle)];
+0069             
+0070 <span class="comment">%% Multiply the template with the transformation matirx</span>
+0071 map_loc = (NIST_sphere_loc.template_loc - rot_center) * trans_matrix + rot_center; <span class="comment">% rotation is respect to origin</span>
+0072 map_radii = repmat(Sphere1_radii, NIST_sphere_loc.num_spheres, 1);
+0073 
+0074 <span class="comment">%% Visualize the new locations with rotation fixed</span>
+0075 figure;imagesc(map_data); colormap hot; axis equal tight;
+0076 viscircles(map_loc, map_radii);
+0077 
+0078 <span class="comment">%% Calculate mean and SD for each sphere</span>
+0079 <span class="keyword">for</span> nx = 1: NIST_std_par.num_spheres
+0080     [~, PointsIndex] = <a href="Circle_Analysis.html" class="code" title="function [CircleMap, PointsIndex] = Circle_Analysis(Center, Radius, ImXSize, ImYSize)">Circle_Analysis</a>(map_loc(nx, :), map_radii(nx), map_size, map_size);
+0081     Mean_all_sphere(nx) = mean(map_data(PointsIndex));
+0082     std_all_sphere(nx) = std(map_data(PointsIndex));
+0083 <span class="keyword">end</span>
+0084 
+0085 <span class="comment">%% Construct output variable circle_par</span>
+0086 sphere_par.all_sphere_loc = map_loc;
+0087 sphere_par.all_sphere_rad = map_radii;
+0088 sphere_par.all_sphere_mean = Mean_all_sphere';
+0089 sphere_par.all_sphere_std = std_all_sphere';</pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

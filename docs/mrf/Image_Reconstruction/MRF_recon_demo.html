@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of MRF_recon_demo</title>
+  <meta name="keywords" content="MRF_recon_demo">
+  <meta name="description" content="">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../menu.html mrf --><!-- menu.html Image_Reconstruction -->
+<h1>MRF_recon_demo
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong></strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../mrf/Image_Reconstruction/Function/MRF_recon.html" class="code" title="function image_data_final_Complex = MRF_recon()">MRF_recon</a>	This script uses sliding window method and complex coil combination to</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 clc
+0002 clear
+0003 <span class="comment">%This script is used as a demo for MRF_recon.m. The function takes in a</span>
+0004 <span class="comment">%.dat raw data file and .mat trajectory file and using sliding windown</span>
+0005 <span class="comment">%reconstruction and complex coil combination to reconstruct the image.</span>
+0006 <span class="comment">%These two files can both be found under Image_Reconstruction/Data</span>
+0007 <span class="comment">% 8/2019 Enlin Qian</span>
+0008 <span class="comment">% # Copyright of the Board of Trustees of Columbia University in the City of New York</span>
+0009 
+0010 <span class="comment">%% Image Reconstruction</span>
+0011 addpath(genpath(<span class="string">'.'</span>));
+0012 image_data_final_Complex = <a href="../../mrf/Image_Reconstruction/Function/MRF_recon.html" class="code" title="function image_data_final_Complex = MRF_recon()">MRF_recon</a>();</pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

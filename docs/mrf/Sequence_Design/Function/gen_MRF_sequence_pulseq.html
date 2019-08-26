@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of gen_MRF_sequence_pulseq</title>
+  <meta name="keywords" content="gen_MRF_sequence_pulseq">
+  <meta name="description" content="This script uses pulseq to generate a sequence proposed in Jiang's paper[1]">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html Sequence_Design --><!-- menu.html Function -->
+<h1>gen_MRF_sequence_pulseq
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>This script uses pulseq to generate a sequence proposed in Jiang's paper[1]</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [kshot, dcf, ind, TR_all, FA_all, TE_all] = gen_MRF_sequence_pulseq() </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> This script uses pulseq to generate a sequence proposed in Jiang's paper[1]
+ INPUT
+       None  User does not need to input any parameter. All parameters for
+             the sueqnece are pre set. If user wants to customize their own
+             MRF sequence, please modify the double for loops starting at
+             line 98 to add different blocks. 
+ 
+ OUTPUT
+      kshot  Spiral trajector in k-space
+        dcf  Density compensation function
+        ind  Index (2nd dim) for k-space points on spiral 
+     TR_all  All TRs used for the sequence.
+     FA_all  All FAs used for the sequence.
+     TE_all  All TEs used for the sequence.</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="design_spiral_pulseq.html" class="code" title="function [k,dcf,t,ind,out,grad]=design_spiral_pulseq(fov,npix,arms,ksamp,fname,gmax,smax,nucleus,acq_round2n,do_rot_file,balanced)">design_spiral_pulseq</a>	This script designs a spiral with delayed acq for fast CSI</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../mrf/Sequence_Design/sequence_design_demo.html" class="code" title="">sequence_design_demo</a>	</li><li><a href="../../../mrf/demo_MRF.html" class="code" title="">demo_MRF</a>	% This script functions as a wrapper for all components of MRF package</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [kshot, dcf, ind, TR_all, FA_all, TE_all] = gen_MRF_sequence_pulseq()</a>
+0002 <span class="comment">% This script uses pulseq to generate a sequence proposed in Jiang's paper[1]</span>
+0003 <span class="comment">% INPUT</span>
+0004 <span class="comment">%       None  User does not need to input any parameter. All parameters for</span>
+0005 <span class="comment">%             the sueqnece are pre set. If user wants to customize their own</span>
+0006 <span class="comment">%             MRF sequence, please modify the double for loops starting at</span>
+0007 <span class="comment">%             line 98 to add different blocks.</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% OUTPUT</span>
+0010 <span class="comment">%      kshot  Spiral trajector in k-space</span>
+0011 <span class="comment">%        dcf  Density compensation function</span>
+0012 <span class="comment">%        ind  Index (2nd dim) for k-space points on spiral</span>
+0013 <span class="comment">%     TR_all  All TRs used for the sequence.</span>
+0014 <span class="comment">%     FA_all  All FAs used for the sequence.</span>
+0015 <span class="comment">%     TE_all  All TEs used for the sequence.</span>
+0016 
+0017 <span class="comment">% 7/2019 Enlin Qian</span>
+0018 <span class="comment">% # Copyright of the Board of Trustees of Columbia University in the City of New York</span>
+0019 <span class="comment">% [1] Jiang Y, Ma D, Seiberlich N, Gulani V, Griswold M. MR fingerprinting using</span>
+0020 <span class="comment">% fast imaging with steady state precession (FISP) with spiral readout. Magn Reson Med.</span>
+0021 <span class="comment">% 2015;74(6):spcone-spcone. doi:10.1002/mrm.26048</span>
+0022 
+0023 <span class="comment">%% Set system limits</span>
+0024 gamma = 42576000; <span class="comment">% in Hz %Determined from Pulseq - do not change,%Hz/T</span>
+0025 Gmax = 32; <span class="comment">%mT/m</span>
+0026 SRmax = 130;<span class="comment">%T/m/s</span>
+0027 system = mr.opts(<span class="string">'MaxGrad'</span>,Gmax,<span class="string">'GradUnit'</span>,<span class="string">'mT/m'</span>,<span class="keyword">...</span>
+0028     <span class="string">'MaxSlew'</span>,SRmax,<span class="string">'SlewUnit'</span>,<span class="string">'T/m/s'</span>, <span class="string">'gradRasterTime'</span>, 10e-6, <span class="string">'rfRingdownTime'</span>,10e-6);
+0029 seq=mr.Sequence(system);
+0030 Cycle_len = 100;
+0031 total_acq = 1000;
+0032 RepeatTimes = ceil(total_acq/Cycle_len);
+0033 
+0034 <span class="comment">%% Load data</span>
+0035 fov=225e-3;
+0036 Nx=256;<span class="comment">% Ny=256;</span>
+0037 sliceThickness=5e-3;
+0038 load(<span class="string">'method_orig.mat'</span>)
+0039 TR_all = method.VariableTR*1e-3;<span class="comment">%converted to s</span>
+0040 TE_all = method.VariableTE*1e-3;<span class="comment">%converted to s</span>
+0041 FA_all = method.VariableFlip+0.01;
+0042 dx = fov/Nx;
+0043 dy = dx;
+0044 SRmax = SRmax.*0.8;
+0045 
+0046 <span class="comment">%% setting up trajectory</span>
+0047 Nshots = 48; <span class="comment">%# of spirals</span>
+0048 alpha = 1;<span class="comment">%constant spiral density</span>
+0049 [ktraj,dcf,t,ind,out,G]=<a href="design_spiral_pulseq.html" class="code" title="function [k,dcf,t,ind,out,grad]=design_spiral_pulseq(fov,npix,arms,ksamp,fname,gmax,smax,nucleus,acq_round2n,do_rot_file,balanced)">design_spiral_pulseq</a>(fov*1000,Nx,Nshots,10,<span class="keyword">...</span>
+0050     <span class="string">''</span>,Gmax,SRmax,<span class="string">'1H'</span>,true,true,true);<span class="comment">%fov is in mm</span>
+0051 G = G.*gamma; <span class="comment">%converting T/m to Hz/m</span>
+0052 
+0053 <span class="comment">%% Rotating G, the G from design_spiral_pulseq function has rewinders but no rotation</span>
+0054 <span class="comment">% ktraj has rotations but no rewinders</span>
+0055 G = complex(G(1,:),G(2,:));
+0056 G = [0,G]; <span class="comment">%add a zero because Siemens does not like odd gradient length</span>
+0057 Gn = zeros(size(G,2),Nshots);
+0058 <span class="keyword">for</span> ks = 1:Nshots
+0059     Gn(:,ks) = (G.*exp(1i*(ks-1)/Nshots*2*pi))';
+0060 <span class="keyword">end</span>
+0061 
+0062 <span class="comment">%% Break ktraj into Nshots</span>
+0063 kshot = zeros(length(ktraj)/Nshots,Nshots);
+0064 OneSpiralPoints = length(ktraj)/Nshots; <span class="comment">%# of points in one spiral</span>
+0065 <span class="keyword">for</span> n1 = 1:Nshots
+0066     kshot(:,n1) = ktraj((n1-1)*OneSpiralPoints+1:n1*OneSpiralPoints).*1e3;<span class="comment">% per m</span>
+0067     plot (kshot(:,n1));hold on;grid on;xlabel(<span class="string">'kx (m-1)'</span>); ylabel(<span class="string">'ky(m-1)'</span>);
+0068 <span class="keyword">end</span>
+0069 
+0070 <span class="comment">%% Get gradient based on k data</span>
+0071 DT=system.gradRasterTime;
+0072 ktrajs = zeros(size(ktraj,1), size(ktraj,2), 2);
+0073 ktrajs(:,:,1) = real(ktraj);
+0074 ktrajs(:,:,2) = imag(ktraj);
+0075 
+0076 <span class="comment">%% Construct flip angles and construct RF angles (RF shapes cant be more than 128 (Siemens limit))</span>
+0077 adc = mr.makeAdc(length(Gn),<span class="string">'Dwell'</span>,system.gradRasterTime);
+0078 <span class="keyword">for</span> itr = 1:total_acq
+0079     [rf, gz] = mr.makeSincPulse(deg2rad(FA_all(itr)),system,<span class="string">'Duration'</span>, 1e-3,<span class="keyword">...</span>
+0080         <span class="string">'SliceThickness'</span>,sliceThickness,<span class="string">'apodization'</span>,0.5,<span class="string">'timeBwProduct'</span>,4);
+0081     rf_all(itr) = rf;
+0082     gz_all(itr) = gz;
+0083 <span class="keyword">end</span>
+0084 
+0085 <span class="comment">%% Need to determine multi-slice frequency offsets</span>
+0086 Nslices=1;
+0087 deltaz=Nslices*sliceThickness;
+0088 z=-(deltaz/2):sliceThickness:(deltaz/2);
+0089 gzReph = mr.makeTrapezoid(<span class="string">'z'</span>,system,<span class="string">'Area'</span>,-gz.area/2,<span class="string">'Duration'</span>,1e-3);
+0090 gx = mr.makeArbitraryGrad(<span class="string">'x'</span>, squeeze(real(Gn(:,1))),system);
+0091 [rf2] = mr.makeBlockPulse(pi,system,<span class="string">'Duration'</span>,500e-6);
+0092 rf2.deadTime = 100e-6;rf2.ringdownTime=30e-6;<span class="comment">%changing properties only for the rf block</span>
+0093 gzSpoil = mr.makeTrapezoid(<span class="string">'z'</span>,system,<span class="string">'Area'</span>,gz.area*2,<span class="string">'Duration'</span>,3*8e-4);
+0094 
+0095 <span class="comment">%% Define sequence block</span>
+0096 numfullim = ceil(total_acq/Nshots);
+0097 delay18 = 18e-3-mr.calcDuration(gzSpoil)-mr.calcDuration(rf2)/2;
+0098 delaySpoil = mr.makeDelay(delay18);
+0099 
+0100 seq.addBlock(gzSpoil);
+0101 seq.addBlock(rf2);
+0102 seq.addBlock(gzSpoil);
+0103 seq.addBlock(delaySpoil);
+0104 time =0;
+0105 <span class="keyword">for</span> ds = 1:numfullim
+0106     <span class="keyword">for</span> ns=1:Nshots
+0107         n = (ds-1)*Nshots+ns;
+0108         <span class="keyword">if</span> n &lt;= 1000 <span class="comment">%GE limitation, only 1000 acq point</span>
+0109             delayTE = mr.calcDuration(gzReph) + (mr.calcDuration(rf_all(n))/2);
+0110             <span class="comment">%% Calculate timing</span>
+0111             delayTR= TR_all(n) - TE_all(n) - mr.calcDuration(gx)/2;
+0112             delayTR = delayTR - mod(delayTR, 1e-5);
+0113             
+0114             delay1 = mr.makeDelay(delayTE);
+0115             delay2 = mr.makeDelay(delayTR);
+0116             
+0117             seq.addBlock(rf_all(n),gz_all(n));
+0118             seq.addBlock(gzReph);
+0119             gx = mr.makeArbitraryGrad(<span class="string">'x'</span>, squeeze(real(Gn(:,ns))),system);
+0120             gy = mr.makeArbitraryGrad(<span class="string">'y'</span>, squeeze(imag(Gn(:,ns))),system);
+0121             seq.addBlock(delay1);
+0122             seq.addBlock(gx,gy,adc);
+0123             seq.addBlock(delay2);
+0124             time = time + TR_all(n);
+0125         <span class="keyword">end</span>
+0126     <span class="keyword">end</span>
+0127 <span class="keyword">end</span>
+0128 disp(time/60);
+0129 seq.plot(<span class="string">'TimeRange'</span>,[0 3*0.014]);
+0130 fname = [<span class="string">'Spiral_2D_vari_1000_single_slice_Orig_Par'</span>, num2str(Nshots),<span class="string">'_'</span>,num2str(TE_all(1))];
+0131 seq.write([fname,<span class="string">'.seq'</span>]);
+0132 <span class="keyword">end</span>
+0133</pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

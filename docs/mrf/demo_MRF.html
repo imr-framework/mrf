@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of demo_MRF</title>
+  <meta name="keywords" content="demo_MRF">
+  <meta name="description" content="% This script functions as a wrapper for all components of MRF package">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html mrf -->
+<h1>demo_MRF
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>% This script functions as a wrapper for all components of MRF package</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% This script functions as a wrapper for all components of MRF package</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../mrf/EPG_Dict_Sim/Function/EPGsim_MRF.html" class="code" title="function [om_store,echoes,seq] = EPGsim_MRF(phis,alphas,TRs,rlx)">EPGsim_MRF</a>	[om_store, echoes, seq] = EPGsim_MRF(phis,alphas,TRs,rlx)</li><li><a href="../mrf/EPG_Dict_Sim/Function/Var_TE.html" class="code" title="function Echo_Final = Var_TE(om_store, TE_all, T2)">Var_TE</a>	</li><li><a href="../mrf/Image_Reconstruction/Function/MRF_recon.html" class="code" title="function image_data_final_Complex = MRF_recon()">MRF_recon</a>	This script uses sliding window method and complex coil combination to</li><li><a href="../mrf/Sequence_Design/Function/gen_MRF_sequence_pulseq.html" class="code" title="function [kshot, dcf, ind, TR_all, FA_all, TE_all] = gen_MRF_sequence_pulseq()">gen_MRF_sequence_pulseq</a>	This script uses pulseq to generate a sequence proposed in Jiang's paper[1]</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% This script functions as a wrapper for all components of MRF package</span>
+0002 clc
+0003 clear
+0004 
+0005 <span class="comment">%% Sequence Design</span>
+0006 addpath(genpath(<span class="string">'.'</span>));
+0007 [kshot, dcf, ind, TR_all, FA_all, TE_all] = <a href="../mrf/Sequence_Design/Function/gen_MRF_sequence_pulseq.html" class="code" title="function [kshot, dcf, ind, TR_all, FA_all, TE_all] = gen_MRF_sequence_pulseq()">gen_MRF_sequence_pulseq</a>();
+0008 
+0009 <span class="comment">%% Image Reconstruction</span>
+0010 image_data_final_Complex = <a href="../mrf/Image_Reconstruction/Function/MRF_recon.html" class="code" title="function image_data_final_Complex = MRF_recon()">MRF_recon</a>();
+0011 
+0012 <span class="comment">%% Dictionary Simulation</span>
+0013 phis = zeros(1,1001); <span class="comment">% the sequence starts with a 180 pulse, thus 1001 points</span>
+0014 alphas = [180, FA_all']; <span class="comment">% all flip angles</span>
+0015 TRs = [18, TR_all'.*1000]; <span class="comment">% all TRs, in ms</span>
+0016 T1_range=20:20:2000; 
+0017 T2_range=5:20:600; 
+0018 n3 = 1;
+0019 Echo_Final=zeros(length(T1_range)*length(T2_range), 1000);
+0020 <span class="keyword">for</span> n1 = 1:length(T1_range)
+0021     <span class="keyword">for</span> n2 = 1:length(T2_range)
+0022         disp (n3)
+0023         [om_store,echoes,seq] = <a href="../mrf/EPG_Dict_Sim/Function/EPGsim_MRF.html" class="code" title="function [om_store,echoes,seq] = EPGsim_MRF(phis,alphas,TRs,rlx)">EPGsim_MRF</a>(phis,alphas,TRs,[T1_range(n1), T2_range(n2)]);
+0024         Echo_Final(n3, :) = <a href="../mrf/EPG_Dict_Sim/Function/Var_TE.html" class="code" title="function Echo_Final = Var_TE(om_store, TE_all, T2)">Var_TE</a>(om_store, TE_all, T2_range(n2));
+0025         n3=n3+1;
+0026     <span class="keyword">end</span>
+0027 <span class="keyword">end</span>
+0028 <span class="comment">%% Dictionary Matching</span>
+0029 
+0030 <span class="comment">%% ROI Analysis Tool</span></pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

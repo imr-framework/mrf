@@ -1,0 +1,322 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of design_spiral_pulseq</title>
+  <meta name="keywords" content="design_spiral_pulseq">
+  <meta name="description" content="This script designs a spiral with delayed acq for fast CSI">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html Sequence_Design --><!-- menu.html Function -->
+<h1>design_spiral_pulseq
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>This script designs a spiral with delayed acq for fast CSI</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [k,dcf,t,ind,out,grad]=design_spiral_pulseq(fov,npix,arms,ksamp,fname,gmax,smax,nucleus,acq_round2n,do_rot_file,balanced) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> This script designs a spiral with delayed acq for fast CSI
+ INPUT
+        fov  field of view                                  [mm]
+       npix  #pixels (Cartesian resolution after gridding)
+       arms  #spatial interleaves                    (1)
+      ksamp  k-space sampling time                   (16)   [us]
+      fname  filename: if given-&gt;write_ak_wav 
+             if logical true: generate name          (false)
+       gmax  max gradient amp                        (40)   [mT/m]
+       smax  max slew rate                           (150)  [T/m/s]
+    nucleus  nucleus                                 ('1H')
+acq_round2n  Round up #acq pts to to 2^n             (true)
+do_rot_file  Write single static spiral into gradient 
+             waveform file &amp; rotate via vap_phiXX.fdl (false)
+   balanced  Balancing gradient area                 (true)
+
+ OUTPUT
+          k  k-space trajectory  [-0.5..0.5]
+        dcf  density compensation function (calculated with vornoi_area)
+          t  time  (nexc x recon-pts)
+        ind  index (2nd dim) for k-space points on spiral (excl ramps, etc)
+        out  output structure of wrt_wavs
+       grad  gradient waveform [T/m] with dt=10us 
+
+ Created 7/2018 Rolf Schulte
+ Modified 7/2019 Enlin Qian</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="gradient_lobe.html" class="code" title="function grad = gradient_lobe(ga_des,dt,gmax,smax,g_off,verb)">gradient_lobe</a>	This scripts calculates gradient lobe with a initial gradient value</li><li><a href="gyrogamma.html" class="code" title="function g = gyrogamma(nucleus)">gyrogamma</a>	This scripts get gyromagnetic ratio of various spins (in radians)</li><li><a href="vds.html" class="code" title="function [k,g,s,time,r,theta] = vds(smax,gmax,T,N,Fcoeff,rmax)">vds</a>	This script generates variable density spiral which traces</li><li><a href="voronoi_area.html" class="code" title="function dcf_out = voronoi_area(k)">voronoi_area</a>	Calculate the area (density) of a k-space trajectory via Voronoi</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="gen_MRF_sequence_pulseq.html" class="code" title="function [kshot, dcf, ind, TR_all, FA_all, TE_all] = gen_MRF_sequence_pulseq()">gen_MRF_sequence_pulseq</a>	This script uses pulseq to generate a sequence proposed in Jiang's paper[1]</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [k,dcf,t,ind,out,grad]=design_spiral_pulseq(fov,npix,arms,ksamp,</a><span class="keyword">...</span>
+0002     fname,gmax,smax,nucleus,acq_round2n,do_rot_file,balanced)
+0003 <span class="comment">% This script designs a spiral with delayed acq for fast CSI</span>
+0004 <span class="comment">% INPUT</span>
+0005 <span class="comment">%        fov  field of view                                  [mm]</span>
+0006 <span class="comment">%       npix  #pixels (Cartesian resolution after gridding)</span>
+0007 <span class="comment">%       arms  #spatial interleaves                    (1)</span>
+0008 <span class="comment">%      ksamp  k-space sampling time                   (16)   [us]</span>
+0009 <span class="comment">%      fname  filename: if given-&gt;write_ak_wav</span>
+0010 <span class="comment">%             if logical true: generate name          (false)</span>
+0011 <span class="comment">%       gmax  max gradient amp                        (40)   [mT/m]</span>
+0012 <span class="comment">%       smax  max slew rate                           (150)  [T/m/s]</span>
+0013 <span class="comment">%    nucleus  nucleus                                 ('1H')</span>
+0014 <span class="comment">%acq_round2n  Round up #acq pts to to 2^n             (true)</span>
+0015 <span class="comment">%do_rot_file  Write single static spiral into gradient</span>
+0016 <span class="comment">%             waveform file &amp; rotate via vap_phiXX.fdl (false)</span>
+0017 <span class="comment">%   balanced  Balancing gradient area                 (true)</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% OUTPUT</span>
+0020 <span class="comment">%          k  k-space trajectory  [-0.5..0.5]</span>
+0021 <span class="comment">%        dcf  density compensation function (calculated with vornoi_area)</span>
+0022 <span class="comment">%          t  time  (nexc x recon-pts)</span>
+0023 <span class="comment">%        ind  index (2nd dim) for k-space points on spiral (excl ramps, etc)</span>
+0024 <span class="comment">%        out  output structure of wrt_wavs</span>
+0025 <span class="comment">%       grad  gradient waveform [T/m] with dt=10us</span>
+0026 <span class="comment">%</span>
+0027 <span class="comment">% Created 7/2018 Rolf Schulte</span>
+0028 <span class="comment">% Modified 7/2019 Enlin Qian</span>
+0029 <span class="keyword">if</span> (nargin&lt;1), help(mfilename); <span class="keyword">return</span>; <span class="keyword">end</span>
+0030 
+0031 
+0032 <span class="comment">%% fixed parameters</span>
+0033 fufa_gmax = 0.99;
+0034 fufa_smax = 0.99;
+0035 g_offset = 16;               <span class="comment">% #grad pts offset for start of trajectory</span>
+0036 gsamp = 10e-6;                <span class="comment">% [s] gradient update time</span>
+0037 
+0038 
+0039 <span class="comment">%% input parameters</span>
+0040 <span class="keyword">if</span> ~exist(<span class="string">'arms'</span>,<span class="string">'var'</span>),        arms = []; <span class="keyword">end</span>    <span class="comment">% #spatial interleaves</span>
+0041 <span class="keyword">if</span> isempty(arms),               arms = 1; <span class="keyword">end</span>
+0042 <span class="keyword">if</span> ~exist(<span class="string">'ksamp'</span>,<span class="string">'var'</span>),       ksamp = []; <span class="keyword">end</span>
+0043 <span class="keyword">if</span> isempty(ksamp),              ksamp = 16; <span class="keyword">end</span>   <span class="comment">% [us] k-space dwell time</span>
+0044 <span class="keyword">if</span> ksamp&lt;2, warning(<span class="string">'dcs:ksamp'</span>,<span class="string">'ksamp(=%g)&lt;2'</span>,ksamp); input(<span class="string">''</span>); <span class="keyword">end</span>
+0045 <span class="keyword">if</span> ~exist(<span class="string">'fname'</span>,<span class="string">'var'</span>),       fname = []; <span class="keyword">end</span>   <span class="comment">% for waveform file</span>
+0046 <span class="keyword">if</span> ~exist(<span class="string">'gmax'</span>,<span class="string">'var'</span>),        gmax = []; <span class="keyword">end</span>
+0047 <span class="keyword">if</span> isempty(gmax),               gmax = 40; <span class="keyword">end</span>   <span class="comment">% [mT/m]</span>
+0048 <span class="keyword">if</span> ~exist(<span class="string">'smax'</span>,<span class="string">'var'</span>),        smax = []; <span class="keyword">end</span>
+0049 <span class="keyword">if</span> isempty(smax),               smax = 150; <span class="keyword">end</span>  <span class="comment">% [T/m/s]</span>
+0050 <span class="keyword">if</span> ~exist(<span class="string">'nucleus'</span>,<span class="string">'var'</span>),     nucleus = []; <span class="keyword">end</span>
+0051 <span class="keyword">if</span> isempty(nucleus),            nucleus = <span class="string">'1H'</span>; <span class="keyword">end</span>
+0052 <span class="keyword">if</span> ~exist(<span class="string">'acq_round2n'</span>,<span class="string">'var'</span>), acq_round2n = []; <span class="keyword">end</span>
+0053 <span class="keyword">if</span> isempty(acq_round2n),        acq_round2n = true; <span class="keyword">end</span>
+0054 <span class="keyword">if</span> ~exist(<span class="string">'do_rot_file'</span>,<span class="string">'var'</span>), do_rot_file = []; <span class="keyword">end</span>
+0055 <span class="keyword">if</span> isempty(do_rot_file),        do_rot_file = false; <span class="keyword">end</span>
+0056 <span class="keyword">if</span> ~exist(<span class="string">'balanced'</span>,<span class="string">'var'</span>),    balanced = []; <span class="keyword">end</span>
+0057 <span class="keyword">if</span> isempty(balanced),           balanced = true; <span class="keyword">end</span>
+0058 
+0059 
+0060 <span class="comment">%% checks</span>
+0061 <span class="keyword">if</span> gmax&lt;1, warning(<span class="string">'dcs:gmax'</span>,<span class="string">'gmax(=%g)&lt;1'</span>,gmax); input(<span class="string">''</span>); <span class="keyword">end</span>
+0062 <span class="keyword">if</span> fov&lt;1, warning(<span class="string">'dcs:fov'</span>,<span class="string">'fov(=%g)&lt;1'</span>,fov); input(<span class="string">''</span>); <span class="keyword">end</span>
+0063 dki = ksamp/gsamp*1d-6;
+0064 <span class="keyword">if</span> dki&lt;0.5
+0065     error(<span class="string">'ksamp: dki&lt;0.5'</span>);
+0066 <span class="keyword">end</span>
+0067 <span class="keyword">if</span> (abs(dki-round(dki))&gt;1d-10)
+0068     <span class="keyword">if</span> abs(dki-0.5)&gt;1d-10
+0069         error(<span class="string">'ksamp (=%g us) not multiple of gsamp (=%g us)'</span>,<span class="keyword">...</span>
+0070             ksamp*1d6,gsamp*1d6);
+0071     <span class="keyword">end</span>
+0072 <span class="keyword">else</span>
+0073     dki = round(dki);
+0074 <span class="keyword">end</span>
+0075 k_offset = g_offset/dki;
+0076 
+0077 
+0078 <span class="comment">%% generate filename</span>
+0079 <span class="keyword">if</span> (islogical(fname) || isnumeric(fname))
+0080     <span class="keyword">if</span> fname
+0081         <span class="keyword">if</span> isnumeric(nucleus), error(<span class="string">'Please enter string for nucleus'</span>); <span class="keyword">end</span>
+0082         fname = sprintf(<span class="string">'spiral_%s_fov%g_npix%g_arms%g_ksamp%g_gmax%g_smax%g'</span>, <span class="keyword">...</span>
+0083             nucleus,round(fov),npix,arms,ksamp,round(gmax),round(smax));
+0084         <span class="keyword">if</span> do_rot_file, fname = [fname <span class="string">'_rofi'</span>]; <span class="keyword">end</span>
+0085     <span class="keyword">else</span>
+0086         fname = [];
+0087     <span class="keyword">end</span>
+0088 <span class="keyword">end</span>
+0089 
+0090 
+0091 <span class="comment">%% convert to standard SI units</span>
+0092 fov = fov*1d-3;           <span class="comment">% [mm] -&gt; [m]</span>
+0093 ksamp = ksamp*1d-6;       <span class="comment">% [us] -&gt; [s]</span>
+0094 gmax = gmax*1d-3;         <span class="comment">% [mT/m] -&gt; [T/m]</span>
+0095 res = fov/npix;           <span class="comment">% [m] resolution</span>
+0096 
+0097 
+0098 <span class="comment">%% design spiral</span>
+0099 rgamma = abs(<a href="gyrogamma.html" class="code" title="function g = gyrogamma(nucleus)">gyrogamma</a>(<span class="string">'1h'</span>)/<a href="gyrogamma.html" class="code" title="function g = gyrogamma(nucleus)">gyrogamma</a>(nucleus));
+0100 fov_mns = fov/rgamma;
+0101 res_mns = res/rgamma;
+0102 fprintf(<span class="string">'gamma ratio=%g\n'</span>,rgamma);
+0103 fprintf(<span class="string">'scaled FOV (fov_mns) = %g [m]\n'</span>,fov_mns); 
+0104 fprintf(<span class="string">'scaled res (res_mns) = %g [mm]\n'</span>,res_mns*1d3);
+0105 gmax_nyquist = 2*pi/(<a href="gyrogamma.html" class="code" title="function g = gyrogamma(nucleus)">gyrogamma</a>(<span class="string">'1h'</span>)*ksamp*fov_mns);
+0106 fprintf(<span class="string">'gmax_nyquist = %g [mT/m]\n'</span>,gmax_nyquist*1d3);
+0107 <span class="keyword">if</span> (gmax_nyquist&lt;gmax)
+0108     fprintf(<span class="string">'Attention: approaching sampling BW limited regime\n'</span>);
+0109     <span class="keyword">if</span> (ksamp&gt;gsamp)
+0110         fprintf(<span class="string">'!!! Undersampling will occur: reduce ksamp !!!\n'</span>); 
+0111         input(<span class="string">'press key to continue'</span>);
+0112     <span class="keyword">end</span>
+0113 <span class="keyword">end</span>
+0114 pause(1);
+0115 [k1,g1,s1,t1,r1,theta1] = <a href="vds.html" class="code" title="function [k,g,s,time,r,theta] = vds(smax,gmax,T,N,Fcoeff,rmax)">vds</a>(fufa_smax*smax*1e2,fufa_gmax*gmax*1e2,gsamp, <span class="keyword">...</span>
+0116    arms,[fov_mns*1e2,0],1/(2*res_mns*1e2));
+0117 
+0118 
+0119 <span class="comment">%% calculate single interleave</span>
+0120 gspir = 1e-2*g1;                <span class="comment">% convert to SI unit [T/m]</span>
+0121 kspir = gsamp*cumsum(gspir);    <span class="comment">% [s*T/m]</span>
+0122 
+0123 
+0124 <span class="comment">%% rewinders</span>
+0125 <span class="keyword">if</span> balanced
+0126     grewx = <a href="gradient_lobe.html" class="code" title="function grad = gradient_lobe(ga_des,dt,gmax,smax,g_off,verb)">gradient_lobe</a>(-real(kspir(1,end)),gsamp,<span class="keyword">...</span>
+0127         fufa_gmax*gmax/sqrt(2),fufa_smax*smax/sqrt(2),real(gspir(1,end)),false);
+0128     grewy = <a href="gradient_lobe.html" class="code" title="function grad = gradient_lobe(ga_des,dt,gmax,smax,g_off,verb)">gradient_lobe</a>(-imag(kspir(1,end)),gsamp,<span class="keyword">...</span>
+0129         fufa_gmax*gmax/sqrt(2),fufa_smax*smax/sqrt(2),imag(gspir(1,end)),false);
+0130     
+0131     grew = zeros(1,max(length(grewx),length(grewy))+1);
+0132     grew(1:length(grewx)) = 1*grewx;
+0133     grew(1:length(grewy)) = grew(1:length(grewy))+1i*grewy;
+0134 <span class="keyword">else</span>
+0135     nrew = ceil(gmax/smax/gsamp/fufa_gmax);
+0136     grew = linspace(real(gspir(1,end)),0,nrew) + <span class="keyword">...</span>
+0137         1i*linspace(imag(gspir(1,end)),0,nrew);
+0138 <span class="keyword">end</span>
+0139 
+0140 <span class="comment">% [LinearFill] = CheckSlewRate(gspir, grew, smax, ksamp);</span>
+0141 <span class="comment">% construct full (not yet rotated) gradient waveform</span>
+0142 <span class="comment">% gg = [zeros(1,g_offset),gspir,grew].';</span>
+0143 ggrealadd1 = (real(grew(1))-real(gspir(end)))/4;
+0144 ggimagadd1 = (imag(grew(1))-imag(gspir(end)))/4;
+0145 ggrealadd2 = (real(grew(1))-real(gspir(end)))/4*2;
+0146 ggimagadd2 = (imag(grew(1))-imag(gspir(end)))/4*2;
+0147 ggrealadd3 = (real(grew(1))-real(gspir(end)))/4*3;
+0148 ggimagadd3 = (imag(grew(1))-imag(gspir(end)))/4*3;
+0149 ggreal = [zeros(1,g_offset),real(gspir),real(gspir(end))+ggrealadd1,real(gspir(end))+ggrealadd2,real(gspir(end))+ggrealadd3, real(grew)].';
+0150 ggimag = [zeros(1,g_offset),imag(gspir),imag(gspir(end))+ggimagadd1,imag(gspir(end))+ggimagadd2,imag(gspir(end))+ggimagadd3, imag(grew)].';
+0151 gg = complex(ggreal,ggimag);
+0152 
+0153 ng = size(gg,1);
+0154 nk = round(length(kspir)/dki);
+0155 
+0156 
+0157 <span class="comment">%% calculate time and index list</span>
+0158 <span class="keyword">if</span> acq_round2n
+0159     acq_pts = 2^ceil(log2(ng/dki));
+0160 <span class="keyword">else</span>
+0161     acq_pts = ceil(length(g)/dki/2)*2;
+0162 <span class="keyword">end</span>
+0163 <span class="keyword">if</span> acq_pts&gt;16384
+0164     warning(<span class="string">'dcs:acq'</span>,<span class="string">'#sampling pts/exc (=%g)&gt;16384: exceeds fidall limit'</span>,nk);
+0165 <span class="keyword">end</span>
+0166 ind = false(arms,acq_pts);             <span class="comment">% index for acquired data</span>
+0167 ind(:,(k_offset+(1:nk))) = true;
+0168 t = repmat((0:nk-1)*ksamp,[arms 1]);   <span class="comment">% time of acq pts</span>
+0169 
+0170 
+0171 <span class="comment">%% rotate trajectory</span>
+0172 phi = [];
+0173 <span class="keyword">if</span> arms&gt;1
+0174     <span class="keyword">if</span> do_rot_file
+0175         phi = mod(-(0:arms-1)/arms*360,360);
+0176     <span class="keyword">else</span>
+0177         gg = bsxfun(@times,gg,exp(1i*(0:arms-1)/arms*2*pi));
+0178     <span class="keyword">end</span>
+0179 <span class="keyword">end</span>
+0180 
+0181 <span class="comment">%% k-space trajectory</span>
+0182 <span class="keyword">if</span> dki&gt;1, k = kspir(1:dki:length(kspir))/2/pi*res_mns*<a href="gyrogamma.html" class="code" title="function g = gyrogamma(nucleus)">gyrogamma</a>(<span class="string">'1H'</span>); 
+0183 <span class="keyword">else</span>,     k = kspir/2/pi*res_mns*<a href="gyrogamma.html" class="code" title="function g = gyrogamma(nucleus)">gyrogamma</a>(<span class="string">'1H'</span>);
+0184 <span class="keyword">end</span>
+0185 <span class="keyword">if</span> abs(dki-0.5)&lt;1d-10
+0186     k = interp1((1:length(k)),k,(1:0.5:length(k)+0.5),<span class="string">'spline'</span>);
+0187 <span class="keyword">end</span>
+0188 <span class="keyword">if</span> arms&gt;1
+0189     <span class="comment">% tmp = [];</span>
+0190     <span class="comment">% for l=1:arms, tmp = [tmp , k*exp(1i*(l-1)/arms*2*pi)]; end</span>
+0191     <span class="comment">% k = tmp;</span>
+0192     k = bsxfun(@times,k,exp(1i*(0:arms-1)/arms*2*pi).').';
+0193     <span class="comment">%k(arms)</span>
+0194     k = k(:).';
+0195 <span class="keyword">end</span>
+0196 dcf = <a href="voronoi_area.html" class="code" title="function dcf_out = voronoi_area(k)">voronoi_area</a>(k*npix);       <span class="comment">% density compensation function</span>
+0197 
+0198 
+0199 <span class="comment">%% print info about waveform</span>
+0200 gmax_act = max(max(abs(gg)));
+0201 smax_act = max(max(abs(diff(gg,1))))/gsamp;
+0202 fprintf(<span class="string">'actual gmax  = %g [mT/m]\n'</span>,gmax_act*1d3);
+0203 <span class="keyword">if</span> (gmax_act&gt;gmax), warning(<span class="string">'gmax exceeded'</span>); <span class="keyword">end</span>
+0204 fprintf(<span class="string">'actual smax  = %g [T/m/s]\n'</span>,smax_act);
+0205 <span class="keyword">if</span> (smax_act&gt;smax), warning(<span class="string">'smax exceeded'</span>); <span class="keyword">end</span>
+0206 
+0207 desc1 = sprintf(<span class="string">'Sequence details\n'</span>);
+0208 desc2 = sprintf(<span class="string">'Acq BW = %g [kHz] (full)\n'</span>,1d-3/ksamp);
+0209 desc3 = sprintf(<span class="string">'gsamp = %g [us]; ksamp = %g [us]\n'</span>,gsamp*1d6,ksamp*1d6);
+0210 desc4 = sprintf(<span class="string">'g_pts = %gx%g; k_pts = %g; acq_pts/exc = %g\n'</span>,<span class="keyword">...</span>
+0211     size(gg,1),size(gg,2),size(k,2),acq_pts);
+0212 t_arm = t1(1,end); t_rew = (length(grew)+1)*gsamp;
+0213 desc5 = sprintf(<span class="string">'t_arm = %g [ms]; t_rew = %g [ms]\n'</span>,t_arm*1d3,t_rew*1d3);
+0214 desc6 = sprintf(<span class="string">'t_seq = %g [ms]\n'</span>,size(gg,1)*gsamp*1d3);
+0215 desc = [desc1 desc2 desc3 desc4 desc5 desc6];
+0216 fprintf(<span class="string">'\n%s\n'</span>,desc);
+0217 
+0218 
+0219 <span class="comment">%% checks</span>
+0220 <span class="keyword">if</span> any(size(dcf)~=size(k))
+0221     warning(<span class="string">'design_spiral:size'</span>,<span class="string">'size(dcf)~=size(k): interpolating dcf'</span>); 
+0222     dcf = interp1(linspace(0,1,size(dcf,2)),dcf,linspace(0,1,size(k,2)));
+0223 <span class="keyword">end</span>
+0224 <span class="keyword">if</span> size(k)~=sum(ind(:)),     error(<span class="string">'size(k)~=sum(ind(:))'</span>); <span class="keyword">end</span>
+0225 <span class="keyword">if</span> prod(size(t))~=size(k,2), error(<span class="string">'prod(size(t))~=size(k,2)'</span>); <span class="keyword">end</span>
+0226 
+0227 
+0228 <span class="comment">%% export waveforms</span>
+0229 <span class="keyword">if</span> ~isempty(fname)
+0230     fprintf(<span class="string">'\nWriting out gradient waveforms + .mat\n'</span>);
+0231     fprintf(<span class="string">'fname = %s\n'</span>,fname);
+0232     out = write_ak_wav([fname <span class="string">'.wav'</span>],gg,1/ksamp,fov_mns,desc);
+0233     save(fname,<span class="string">'out'</span>,<span class="string">'k'</span>,<span class="string">'dcf'</span>,<span class="string">'t'</span>,<span class="string">'ind'</span>,<span class="string">'fov'</span>,<span class="keyword">...</span>
+0234         <span class="string">'npix'</span>,<span class="string">'gsamp'</span>,<span class="string">'ksamp'</span>,<span class="string">'gmax'</span>,<span class="string">'smax'</span>,<span class="string">'nucleus'</span>,<span class="keyword">...</span>
+0235         <span class="string">'t_rew'</span>,<span class="string">'t_arm'</span>,<span class="string">'g_offset'</span>,<span class="string">'gmax_nyquist'</span>,<span class="string">'rgamma'</span>,<span class="string">'fov_mns'</span>,<span class="string">'phi'</span>);
+0236     <span class="keyword">if</span> do_rot_file, write_fdl([fname <span class="string">'_phi.fdl'</span>],phi,<span class="string">'phi'</span>); <span class="keyword">end</span>
+0237 <span class="keyword">else</span>
+0238     out.gmax = gmax;
+0239     out.smax = smax;
+0240     out.gdt = gsamp;
+0241     out.kdt = ksamp;
+0242     out.grad = gg;
+0243     out.bw = 1/ksamp;
+0244     out.fov = fov;
+0245 <span class="keyword">end</span>
+0246 
+0247 
+0248 <span class="comment">%% reshape + output grad</span>
+0249 grad = zeros(2,size(gg,1),size(gg,2));
+0250 grad(1,:,:) = real(reshape(gg,[1 size(gg,1) size(gg,2)]));
+0251 grad(2,:,:) = imag(reshape(gg,[1 size(gg,1) size(gg,2)]));</pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

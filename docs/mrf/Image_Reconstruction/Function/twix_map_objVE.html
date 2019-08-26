@@ -1,0 +1,1167 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of twix_map_objVE</title>
+  <meta name="keywords" content="twix_map_objVE">
+  <meta name="description" content="">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html Image_Reconstruction --><!-- menu.html Function -->
+<h1>twix_map_objVE
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong></strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>	</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="mapVBVDVE.html" class="code" title="function [twix_obj version] = mapVBVDVE(filename,varargin)">mapVBVDVE</a>	This script reads Siemens raw .dat file from VB/VD MRI raw data.</li><li><a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>	</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function this = twix_map_objVE(arg,dataType,fname,version,rstraj)</a></li><li><a href="#_sub2" class="code">function this = readMDH(this, mdh, filePos )</a></li><li><a href="#_sub3" class="code">function this = tryAndFixLastMdh(this)</a></li><li><a href="#_sub4" class="code">function this = clean(this)</a></li><li><a href="#_sub5" class="code">function varargout = subsref(this, S)</a></li><li><a href="#_sub6" class="code">function out = unsorted(this,ival)</a></li><li><a href="#_sub7" class="code">function out = readData(this,mem,cIxToTarg,cIxToRaw,selRange,selRangeSz,outSize)</a></li><li><a href="#_sub8" class="code">function setDefaultFlags(this)</a></li><li><a href="#_sub9" class="code">function dummy = resetFlags(this)</a></li><li><a href="#_sub10" class="code">function set.flagRemoveOS(this,val)</a></li><li><a href="#_sub11" class="code">function out = get.flagRemoveOS(this)</a></li><li><a href="#_sub12" class="code">function set.flagDoAverage(this,val)</a></li><li><a href="#_sub13" class="code">function out = get.flagDoAverage(this)</a></li><li><a href="#_sub14" class="code">function set.flagAverageReps(this,val)</a></li><li><a href="#_sub15" class="code">function out = get.flagAverageReps(this)</a></li><li><a href="#_sub16" class="code">function set.flagAverageSets(this,val)</a></li><li><a href="#_sub17" class="code">function out = get.flagAverageSets(this)</a></li><li><a href="#_sub18" class="code">function set.flagSkipToFirstLine(this,val)</a></li><li><a href="#_sub19" class="code">function out = get.flagSkipToFirstLine(this)</a></li><li><a href="#_sub20" class="code">function set.flagIgnoreSeg(this,val)</a></li><li><a href="#_sub21" class="code">function out = get.flagIgnoreSeg(this)</a></li><li><a href="#_sub22" class="code">function out = get.flagRampSampRegrid(this)</a></li><li><a href="#_sub23" class="code">function set.flagRampSampRegrid(this, val)</a></li><li><a href="#_sub24" class="code">function out = get.flagDoRawDataCorrect(this)</a></li><li><a href="#_sub25" class="code">function set.flagDoRawDataCorrect(this, val)</a></li><li><a href="#_sub26" class="code">function out = get.RawDataCorrectionFactors(this)</a></li><li><a href="#_sub27" class="code">function set.RawDataCorrectionFactors(this, val)</a></li><li><a href="#_sub28" class="code">function fid = fileopen(this)</a></li><li><a href="#_sub29" class="code">function [selRange,selRangeSz,outSize] = calcRange(this,S)</a></li><li><a href="#_sub30" class="code">function calcSqzSize(this)</a></li><li><a href="#_sub31" class="code">function calcIndices(this)</a></li><li><a href="#_sub32" class="code">function ndx = sub2ind_double(sz,varargin)</a></li><li><a href="#_sub33" class="code">function N = cast2MinimalUint( N )</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 classdef <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a> &lt; matlab.mixin.Copyable <span class="comment">%handle</span>
+0002 <span class="comment">% class to hold information about raw data from siemens MRI scanners</span>
+0003 <span class="comment">% (currently VB and VD software versions are supported and tested).</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Author: Philipp Ehses (philipp.ehses@tuebingen.mpg.de), Aug/19/2011</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Modified by Wolf Blecher (wolf.blecher@tuebingen.mpg.de), Apr/26/2012</span>
+0009 <span class="comment">% Added reorder index to indicate which lines are reflected</span>
+0010 <span class="comment">% Added slice position for sorting, Mai/15/2012</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% Order of many mdh parameters are now stored (including the reflected ADC</span>
+0013 <span class="comment">% bit); PE, Jun/14/2012</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% data is now 'memory mapped' and not read until demanded;</span>
+0016 <span class="comment">% (see mapVBVD for a description) PE, Aug/02/2012</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% twix_obj.image.unsorted now returns the data in its acq. order</span>
+0019 <span class="comment">% [NCol,NCha,nsamples in acq. order], all average flags don't have an</span>
+0020 <span class="comment">% influence on the output, but 'flagRemoveOS' still works, PE, Sep/04/13</span>
+0021 <span class="comment">%</span>
+0022 properties(Dependent=true)
+0023     <span class="comment">% flags</span>
+0024     flagRemoveOS        <span class="comment">% removes oversampling in read (col) during read operation</span>
+0025     flagDoAverage       <span class="comment">% averages over all avg during read operation</span>
+0026     flagAverageReps     <span class="comment">% averages over all repetitions</span>
+0027     flagAverageSets     <span class="comment">% averages over all sets</span>
+0028     flagIgnoreSeg       <span class="comment">% sum over all segments during read operation</span>
+0029     flagSkipToFirstLine <span class="comment">% skips lines/partitions up to the first</span>
+0030                         <span class="comment">% actually acquired line/partition</span>
+0031                         <span class="comment">% (e.g. only the center k-space is acquired in</span>
+0032                         <span class="comment">% refscans, we don't want all the leading zeros</span>
+0033                         <span class="comment">% in our data)</span>
+0034                         <span class="comment">% this is the default behaviour for everything</span>
+0035                         <span class="comment">% but image scans (but can be changed manually)</span>
+0036     flagRampSampRegrid  <span class="comment">% perform on-the-fly ramp sampling regridding</span>
+0037     flagDoRawDataCorrect     <span class="comment">%SRY: apply raw data correction factors during read operation</span>
+0038     RawDataCorrectionFactors <span class="comment">%SRY: allow the user to set/get the factors</span>
+0039 <span class="keyword">end</span>
+0040 
+0041 properties(GetAccess=<span class="string">'public'</span>, SetAccess=<span class="string">'public'</span>)
+0042     filename
+0043     dataType
+0044 <span class="keyword">end</span>
+0045 
+0046 properties(GetAccess=<span class="string">'public'</span>, SetAccess=<span class="string">'protected'</span>)
+0047     softwareVersion
+0048 
+0049     dataSize <span class="comment">% this is the current output size, depends on fullSize + some flags</span>
+0050     dataDims
+0051     sqzSize
+0052     sqzDims
+0053 
+0054     NCol  <span class="comment">% mdh information</span>
+0055     NCha  <span class="comment">% mdh information</span>
+0056     NLin  <span class="comment">% mdh information</span>
+0057     NPar  <span class="comment">% mdh information</span>
+0058     NSli  <span class="comment">% mdh information</span>
+0059     NAve  <span class="comment">% mdh information</span>
+0060     NPhs  <span class="comment">% mdh information</span>
+0061     NEco  <span class="comment">% mdh information</span>
+0062     NRep  <span class="comment">% mdh information</span>
+0063     NSet  <span class="comment">% mdh information</span>
+0064     NSeg  <span class="comment">% mdh information</span>
+0065     NIda  <span class="comment">% mdh information</span>
+0066     NIdb  <span class="comment">% mdh information</span>
+0067     NIdc  <span class="comment">% mdh information</span>
+0068     NIdd  <span class="comment">% mdh information</span>
+0069     NIde  <span class="comment">% mdh information</span>
+0070     NAcq  <span class="comment">% simple counter</span>
+0071 
+0072     <span class="comment">% mdh information</span>
+0073     Lin
+0074     Par
+0075     Sli
+0076     Ave
+0077     Phs
+0078     Eco
+0079     Rep
+0080     Set
+0081     Seg
+0082     Ida
+0083     Idb
+0084     Idc
+0085     Idd
+0086     Ide
+0087 
+0088     centerCol
+0089     centerLin
+0090     centerPar
+0091     cutOff
+0092     coilSelect
+0093     ROoffcenter
+0094     timeSinceRF
+0095     IsReflected
+0096     IsRawDataCorrect <span class="comment">%SRY: storage for MDH flag raw data correct</span>
+0097 
+0098     slicePos
+0099     freeParam
+0100     iceParam
+0101     scancounter
+0102     timestamp
+0103     pmutime
+0104     rampSampTrj
+0105 
+0106     <span class="comment">% memory position in file</span>
+0107     memPos
+0108 
+0109     <span class="comment">% index that translates simple, linear order of mdh info vectors</span>
+0110     <span class="comment">% to target matrix (of size dataSize)</span>
+0111     ixToTarget <span class="comment">% inverted page table (physical to virtual addresses)</span>
+0112     ixToRaw    <span class="comment">% page table (virtual to physical addresses)</span>
+0113     
+0114     isBrokenFile <span class="comment">% errors when parsing?</span>
+0115 <span class="keyword">end</span>
+0116 
+0117 properties(Hidden=true, SetAccess=<span class="string">'protected'</span>)
+0118     arg  <span class="comment">% arguments</span>
+0119 
+0120     fullSize <span class="comment">% this is the full size of the data set according to the mdhs, i.e. flags</span>
+0121              <span class="comment">% like 'reduceOS' have no influence on it</span>
+0122 
+0123     freadInfo
+0124 
+0125     skipLin
+0126     skipPar
+0127 <span class="keyword">end</span>
+0128 
+0129 methods
+0130     <span class="comment">% Constructor:</span>
+0131     <a name="_sub0" href="#_subfunctions" class="code">function this = twix_map_objVE(arg,dataType,fname,version,rstraj)</a>
+0132 
+0133         <span class="keyword">if</span> ~exist(<span class="string">'dataType'</span>,<span class="string">'var'</span>)
+0134             this.dataType = <span class="string">'image'</span>;
+0135         <span class="keyword">else</span>
+0136             this.dataType = lower(dataType);
+0137         <span class="keyword">end</span>
+0138 
+0139         this.filename         = fname;
+0140         this.softwareVersion  = version;
+0141 
+0142         this.IsReflected      = logical([]);
+0143         this.IsRawDataCorrect = logical([]); <span class="comment">%SRY</span>
+0144         this.NAcq             = 0;
+0145         this.isBrokenFile     = false;
+0146 
+0147         this.setDefaultFlags();
+0148         <span class="keyword">if</span> exist(<span class="string">'arg'</span>,<span class="string">'var'</span>)
+0149             <span class="comment">% copy relevant arguments from mapVBVD argument list</span>
+0150             names=fieldnames(arg);
+0151             <span class="keyword">for</span> k=1:numel(names)
+0152                 <span class="keyword">if</span> isfield(this.arg,names{k})
+0153                     this.arg.(names{k}) = arg.(names{k});
+0154                 <span class="keyword">end</span>
+0155             <span class="keyword">end</span>
+0156         <span class="keyword">end</span>
+0157 
+0158         <span class="keyword">switch</span> this.softwareVersion
+0159             <span class="keyword">case</span> <span class="string">'vb'</span>
+0160                 <span class="comment">% every channel has its own full mdh</span>
+0161                 this.freadInfo.szScanHeader    =   0; <span class="comment">% [bytes]</span>
+0162                 this.freadInfo.szChannelHeader = 128; <span class="comment">% [bytes]</span>
+0163                 this.freadInfo.iceParamSz      =   4;
+0164             <span class="keyword">case</span> <span class="string">'vd'</span>
+0165                 <span class="keyword">if</span> ( this.arg.doRawDataCorrect )
+0166                     error(<span class="string">'raw data correction for VD not supported/tested yet'</span>);
+0167                 <span class="keyword">end</span>
+0168                 this.freadInfo.szScanHeader    = 192; <span class="comment">% [bytes]</span>
+0169                 this.freadInfo.szChannelHeader =  32; <span class="comment">% [bytes]</span>
+0170                 this.freadInfo.iceParamSz      =  24; <span class="comment">% vd version supports up to 24 ice params</span>
+0171             <span class="keyword">otherwise</span>
+0172                 error(<span class="string">'software version not supported'</span>);
+0173         <span class="keyword">end</span>
+0174 
+0175         <span class="keyword">if</span> exist(<span class="string">'rstraj'</span>,<span class="string">'var'</span>)
+0176             this.rampSampTrj = rstraj;
+0177         <span class="keyword">else</span>
+0178             this.rampSampTrj        = [];
+0179             this.arg.rampSampRegrid = false;
+0180         <span class="keyword">end</span>
+0181     <span class="keyword">end</span>
+0182 
+0183     <a name="_sub1" href="#_subfunctions" class="code">function this = readMDH(this, mdh, filePos )</a>
+0184         <span class="comment">% extract all values in all MDHs at once</span>
+0185         <span class="comment">%</span>
+0186         <span class="comment">% data types:</span>
+0187         <span class="comment">% Use double for everything non-logical, both ints and floats. Seems the</span>
+0188         <span class="comment">% most robust way to avoid unexpected cast-issues with very nasty side effects.</span>
+0189         <span class="comment">% Examples: eps(single(16777216)) == 2</span>
+0190         <span class="comment">%           uint32( 10 ) - uint32( 20 ) == 0</span>
+0191         <span class="comment">%           uint16(100) + 1e5 == 65535</span>
+0192         <span class="comment">%           size(1 : 10000 * uint16(1000)) ==  [1  65535]</span>
+0193         <span class="comment">%</span>
+0194         <span class="comment">% The 1st example always hits the timestamps.</span>
+0195 
+0196         <span class="keyword">if</span> ~isstruct( mdh ) || isempty( mdh )
+0197             <span class="keyword">return</span>
+0198         <span class="keyword">end</span>
+0199 
+0200         this.NAcq     = numel( filePos );
+0201         sLC           = double( mdh.sLC ) + 1;  <span class="comment">% +1: convert to matlab index style</span>
+0202         evalInfoMask1 = double( mdh.aulEvalInfoMask(:,1) ).';
+0203 
+0204         <span class="comment">% save mdh information for each line</span>
+0205         this.NCol       = double( mdh.ushSamplesInScan ).';
+0206         this.NCha       = double( mdh.ushUsedChannels ).';
+0207         this.Lin        = sLC(:,1).' ;
+0208         this.Ave        = sLC(:,2).' ;
+0209         this.Sli        = sLC(:,3).' ;
+0210         this.Par        = sLC(:,4).' ;
+0211         this.Eco        = sLC(:,5).' ;
+0212         this.Phs        = sLC(:,6).' ;
+0213         this.Rep        = sLC(:,7).' ;
+0214         this.Set        = sLC(:,8).' ;
+0215         this.Seg        = sLC(:,9).' ;
+0216         this.Ida        = sLC(:,10).';
+0217         this.Idb        = sLC(:,11).';
+0218         this.Idc        = sLC(:,12).';
+0219         this.Idd        = sLC(:,13).';
+0220         this.Ide        = sLC(:,14).';
+0221 
+0222         this.centerCol   = double( mdh.ushKSpaceCentreColumn ).' + 1;
+0223         this.centerLin   = double( mdh.ushKSpaceCentreLineNo ).' + 1;
+0224         this.centerPar   = double( mdh.ushKSpaceCentrePartitionNo ).' + 1;
+0225         this.cutOff      = double( mdh.sCutOff ).';
+0226         this.coilSelect  = double( mdh.ushCoilSelect ).';
+0227         this.ROoffcenter = double( mdh.fReadOutOffcentre ).';
+0228         this.timeSinceRF = double( mdh.ulTimeSinceLastRF ).';
+0229         this.IsReflected = logical(min(bitand(evalInfoMask1,2^24),1));
+0230         this.scancounter = double( mdh.ulScanCounter ).';
+0231         this.timestamp   = double( mdh.ulTimeStamp ).';
+0232         this.pmutime     = double( mdh.ulPMUTimeStamp ).';
+0233         this.IsRawDataCorrect = logical(min(bitand(evalInfoMask1,2^10),1)); <span class="comment">%SRY</span>
+0234         this.slicePos    = double( mdh.SlicePos ).';
+0235         this.iceParam    = double( mdh.aushIceProgramPara ).';
+0236         this.freeParam   = double( mdh.aushFreePara ).';
+0237 
+0238         this.memPos = filePos;
+0239 
+0240     <span class="keyword">end</span> <span class="comment">% of readMDH</span>
+0241 
+0242     <a name="_sub2" href="#_subfunctions" class="code">function this = tryAndFixLastMdh(this)</a>
+0243         eofWarning = [mfilename() <span class="string">':UnxpctdEOF'</span>];   <span class="comment">% We have it inside this.readData()</span>
+0244         warning( <span class="string">'off'</span>, eofWarning )    <span class="comment">% silence warnings for read...</span>
+0245         warning( <span class="string">'off'</span>, <span class="string">'foo:bar'</span>  )    <span class="comment">% ... and a stupid placeholder</span>
+0246 
+0247         isLastAcqGood = false;
+0248         cnt = 0;
+0249 
+0250         <span class="keyword">while</span> ~isLastAcqGood  &amp;&amp;  this.NAcq &gt; 0  &amp;&amp; cnt &lt; 100
+0251             warning( <span class="string">'foo:bar'</span>, <span class="string">'baz'</span>) <span class="comment">% make sure that lastwarn() does not return eofWarning</span>
+0252             <span class="keyword">try</span>
+0253                 this.clean();
+0254                 this.unsorted(this.NAcq);
+0255                 [~, warnid] = lastwarn();
+0256                 <span class="keyword">if</span> strcmp( warnid, eofWarning )
+0257                     error( <span class="string">'Make sure to go to the catch block.'</span>)
+0258                 <span class="keyword">end</span>
+0259                 isLastAcqGood = true;
+0260             <span class="keyword">catch</span>
+0261                 this.isBrokenFile = true;
+0262                 this.NAcq = this.NAcq-1;
+0263             <span class="keyword">end</span>
+0264             cnt = cnt + 1;
+0265         <span class="keyword">end</span>
+0266         
+0267 <span class="comment">%         if this.NAcq == 0  ||  cnt &gt; 99    % everything is garbage</span>
+0268 <span class="comment">%             warning(  )</span>
+0269 <span class="comment">%         end</span>
+0270 
+0271         warning( <span class="string">'on'</span>, eofWarning )
+0272     <span class="keyword">end</span>
+0273 
+0274     <a name="_sub3" href="#_subfunctions" class="code">function this = clean(this)</a>
+0275         
+0276         <span class="keyword">if</span> this.NAcq == 0
+0277             <span class="keyword">return</span>;
+0278         <span class="keyword">end</span>
+0279 
+0280         <span class="comment">% Cut mdh data to actual size. Maybe we rejected acquisitions at the end</span>
+0281         <span class="comment">% due to read errors.</span>
+0282         fields = { <span class="string">'NCol'</span>, <span class="string">'NCha'</span>,                                                  <span class="keyword">...</span>
+0283                    <span class="string">'Lin'</span>, <span class="string">'Par'</span>, <span class="string">'Sli'</span>, <span class="string">'Ave'</span>, <span class="string">'Phs'</span>, <span class="string">'Eco'</span>, <span class="string">'Rep'</span>,                 <span class="keyword">...</span>
+0284                    <span class="string">'Set'</span>, <span class="string">'Seg'</span>, <span class="string">'Ida'</span>, <span class="string">'Idb'</span>, <span class="string">'Idc'</span>, <span class="string">'Idd'</span>, <span class="string">'Ide'</span>,                 <span class="keyword">...</span>
+0285                    <span class="string">'centerCol'</span>  ,   <span class="string">'centerLin'</span>,   <span class="string">'centerPar'</span>,           <span class="string">'cutOff'</span>, <span class="keyword">...</span>
+0286                    <span class="string">'coilSelect'</span> , <span class="string">'ROoffcenter'</span>, <span class="string">'timeSinceRF'</span>,      <span class="string">'IsReflected'</span>, <span class="keyword">...</span>
+0287                    <span class="string">'scancounter'</span>,   <span class="string">'timestamp'</span>,     <span class="string">'pmutime'</span>, <span class="string">'IsRawDataCorrect'</span>, <span class="keyword">...</span>
+0288                    <span class="string">'slicePos'</span>   ,    <span class="string">'iceParam'</span>,   <span class="string">'freeParam'</span>,           <span class="string">'memPos'</span>  };
+0289         
+0290         nack = this.NAcq;
+0291         idx = 1:nack;
+0292 
+0293         <span class="keyword">for</span> f = fields
+0294             f1 = f{1};
+0295             <span class="keyword">if</span> size(this.(f1),2) &gt; nack   <span class="comment">% rarely</span>
+0296                 this.(f1) = this.(f1)(:,idx);       <span class="comment">% 1st dim: samples,  2nd dim acquisitions</span>
+0297             <span class="keyword">end</span>
+0298         <span class="keyword">end</span>
+0299 
+0300         this.NLin = max(this.Lin);
+0301         this.NPar = max(this.Par);
+0302         this.NSli = max(this.Sli);
+0303         this.NAve = max(this.Ave);
+0304         this.NPhs = max(this.Phs);
+0305         this.NEco = max(this.Eco);
+0306         this.NRep = max(this.Rep);
+0307         this.NSet = max(this.Set);
+0308         this.NSeg = max(this.Seg);
+0309         this.NIda = max(this.Ida);
+0310         this.NIdb = max(this.Idb);
+0311         this.NIdc = max(this.Idc);
+0312         this.NIdd = max(this.Idd);
+0313         this.NIde = max(this.Ide);
+0314 
+0315         <span class="comment">% ok, let us assume for now that all NCol and NCha entries are</span>
+0316         <span class="comment">% the same for all mdhs:</span>
+0317         this.NCol = this.NCol(1);
+0318         this.NCha = this.NCha(1);
+0319 
+0320         this.dataDims = {<span class="string">'Col'</span>,<span class="string">'Cha'</span>,<span class="string">'Lin'</span>,<span class="string">'Par'</span>,<span class="string">'Sli'</span>,<span class="string">'Ave'</span>,<span class="string">'Phs'</span>,<span class="keyword">...</span>
+0321             <span class="string">'Eco'</span>,<span class="string">'Rep'</span>,<span class="string">'Set'</span>,<span class="string">'Seg'</span>,<span class="string">'Ida'</span>,<span class="string">'Idb'</span>,<span class="string">'Idc'</span>,<span class="string">'Idd'</span>,<span class="string">'Ide'</span>};
+0322 
+0323         <span class="keyword">if</span> strcmp(this.dataType,<span class="string">'refscan'</span>)
+0324             <span class="comment">%pehses: check for lines with 'negative' line/partition numbers</span>
+0325             <span class="comment">%this can happen when the reference scan line/partition range</span>
+0326             <span class="comment">%exceeds the one of the actual imaging scan</span>
+0327             <span class="keyword">if</span> this.NLin&gt;65500  <span class="comment">%uint overflow check</span>
+0328                 this.Lin  = mod(this.Lin + (65536 - min(this.Lin(this.Lin&gt;65500))),65536)+1;
+0329                 this.NLin = max(this.Lin);
+0330             <span class="keyword">end</span>
+0331             <span class="keyword">if</span> this.NPar&gt;65500  <span class="comment">%uint overflow check</span>
+0332                 this.Par  = mod(this.Par + (65536 - min(this.Par(this.Par&gt;65500))),65536)+1;
+0333                 this.NPar = max(this.Par);
+0334             <span class="keyword">end</span>
+0335         <span class="keyword">end</span>
+0336 
+0337         <span class="comment">% to reduce the matrix sizes of non-image scans, the size</span>
+0338         <span class="comment">% of the refscan_obj()-matrix is reduced to the area of the</span>
+0339         <span class="comment">% actually scanned acs lines (the outer part of k-space</span>
+0340         <span class="comment">% that is not scanned is not filled with zeros)</span>
+0341         <span class="comment">% this behaviour is controlled by flagSkipToFirstLine which is</span>
+0342         <span class="comment">% set to true by default for everything but image scans</span>
+0343         <span class="keyword">if</span> ~this.flagSkipToFirstLine
+0344             <span class="comment">% the output matrix should include all leading zeros</span>
+0345             this.skipLin = 0;
+0346             this.skipPar = 0;
+0347         <span class="keyword">else</span>
+0348             <span class="comment">% otherwise, cut the matrix size to the start of the</span>
+0349             <span class="comment">% first actually scanned line/partition (e.g. the acs/</span>
+0350             <span class="comment">% phasecor data is only acquired in the k-space center)</span>
+0351             this.skipLin = min(this.Lin)-1;
+0352             this.skipPar = min(this.Par)-1;
+0353         <span class="keyword">end</span>
+0354         NLinAlloc = max(1, this.NLin - this.skipLin);
+0355         NParAlloc = max(1, this.NPar - this.skipPar);
+0356 
+0357         this.fullSize = [ this.NCol this.NCha NLinAlloc NParAlloc<span class="keyword">...</span>
+0358                           this.NSli this.NAve this.NPhs this.NEco<span class="keyword">...</span>
+0359                           this.NRep this.NSet this.NSeg this.NIda<span class="keyword">...</span>
+0360                           this.NIdb this.NIdc this.NIdd this.NIde ];
+0361 
+0362         this.dataSize = this.fullSize;
+0363 
+0364         <span class="keyword">if</span> this.arg.removeOS
+0365             this.dataSize(1) = this.NCol/2;
+0366         <span class="keyword">end</span>
+0367 
+0368         <span class="keyword">if</span> this.arg.doAverage
+0369             this.dataSize(6) = 1;
+0370         <span class="keyword">end</span>
+0371 
+0372         <span class="keyword">if</span> this.arg.averageReps
+0373             this.dataSize(9) = 1;
+0374         <span class="keyword">end</span>
+0375 
+0376         <span class="keyword">if</span> this.arg.averageSets
+0377             this.dataSize(10) = 1;
+0378         <span class="keyword">end</span>
+0379 
+0380         <span class="keyword">if</span> this.arg.ignoreSeg
+0381             this.dataSize(11) = 1;
+0382         <span class="keyword">end</span>
+0383 
+0384         <span class="comment">% calculate sqzSize</span>
+0385         this.calcSqzSize;
+0386 
+0387         <span class="comment">% calculate indices to target &amp; source(raw)</span>
+0388         this.calcIndices;
+0389 
+0390         nByte = this.NCha*(this.freadInfo.szChannelHeader+8*this.NCol);
+0391 
+0392         <span class="comment">% size for fread</span>
+0393         this.freadInfo.sz    = [2 nByte/8];
+0394         <span class="comment">% reshape size</span>
+0395         this.freadInfo.shape = [this.NCol+this.freadInfo.szChannelHeader/8 <span class="keyword">...</span>
+0396                                , this.NCha];
+0397         <span class="comment">% we need to cut MDHs from fread data</span>
+0398         this.freadInfo.cut   = this.freadInfo.szChannelHeader/8 + (1 : this.NCol);
+0399 
+0400     <span class="keyword">end</span> <span class="comment">% of clean</span>
+0401 
+0402 
+0403     <a name="_sub4" href="#_subfunctions" class="code">function varargout = subsref(this, S)</a>
+0404         <span class="comment">% this is where the magic happens</span>
+0405         <span class="comment">% Now seriously. Overloading of the subsref-method and working</span>
+0406         <span class="comment">% with a gazillion indices got really messy really fast. At</span>
+0407         <span class="comment">% some point, I should probably clean this code up a bit. But</span>
+0408         <span class="comment">% good news everyone: It seems to work.</span>
+0409         <span class="keyword">switch</span> S(1).type
+0410             <span class="keyword">case</span> <span class="string">'.'</span>
+0411                 <span class="comment">% We don't want to manage method/variable calls, so we'll</span>
+0412                 <span class="comment">% simply call the built-in subsref-function in this case.</span>
+0413                 <span class="keyword">if</span> nargout == 0
+0414                     varargout{1} = builtin(<span class="string">'subsref'</span>, this, S); <span class="comment">% CTR fix.</span>
+0415                 <span class="keyword">else</span>
+0416                     varargout      = cell(1, nargout);
+0417                     [varargout{:}] = builtin(<span class="string">'subsref'</span>, this, S);
+0418                 <span class="keyword">end</span>
+0419                 <span class="keyword">return</span>;
+0420             <span class="keyword">case</span> {<span class="string">'()'</span>,<span class="string">'{}'</span>}
+0421             <span class="keyword">otherwise</span>
+0422                 error(<span class="string">'operator not supported'</span>);
+0423         <span class="keyword">end</span>
+0424 
+0425         [selRange,selRangeSz,outSize] = this.calcRange(S(1));
+0426 
+0427         tmp = reshape(1:prod(double(this.fullSize(3:end))), this.fullSize(3:end));
+0428 <span class="comment">%         tmp = tmp(selRange{3:end});</span>
+0429         cIxToRaw = this.ixToRaw(tmp); clear tmp;
+0430         cIxToRaw = cIxToRaw(:);
+0431         <span class="comment">% delete all entries that point to zero (the &quot;NULL&quot;-pointer)</span>
+0432         notAcquired = (cIxToRaw == 0);
+0433         cIxToRaw (notAcquired) = []; clear notAcquired;
+0434 
+0435         <span class="comment">% calculate cIxToTarg for possibly smaller, shifted + segmented</span>
+0436         <span class="comment">% target matrix:</span>
+0437         cIx = zeros(14, numel(cIxToRaw), <span class="string">'single'</span>);
+0438         cIx( 1,:) = this.Lin(cIxToRaw) - this.skipLin;
+0439         cIx( 2,:) = this.Par(cIxToRaw) - this.skipPar;
+0440         cIx( 3,:) = this.Sli(cIxToRaw);
+0441         <span class="keyword">if</span> this.arg.doAverage
+0442             cIx( 4,:) = 1;
+0443         <span class="keyword">else</span>
+0444             cIx( 4,:) = this.Ave(cIxToRaw);
+0445         <span class="keyword">end</span>
+0446         cIx( 5,:) = this.Phs(cIxToRaw);
+0447         cIx( 6,:) = this.Eco(cIxToRaw);
+0448         <span class="keyword">if</span> this.arg.averageReps
+0449             cIx( 7,:) = 1;
+0450         <span class="keyword">else</span>
+0451             cIx( 7,:) = this.Rep(cIxToRaw);
+0452         <span class="keyword">end</span>
+0453         <span class="keyword">if</span> this.arg.averageSets
+0454             cIx( 8,:) = 1;
+0455         <span class="keyword">else</span>
+0456             cIx( 8,:) = this.Set(cIxToRaw);
+0457         <span class="keyword">end</span>
+0458         <span class="keyword">if</span> this.arg.ignoreSeg
+0459             cIx( 9,:) = 1;
+0460         <span class="keyword">else</span>
+0461             cIx( 9,:) = this.Seg(cIxToRaw);
+0462         <span class="keyword">end</span>
+0463         cIx(10,:) = this.Ida(cIxToRaw);
+0464         cIx(11,:) = this.Idb(cIxToRaw);
+0465         cIx(12,:) = this.Idc(cIxToRaw);
+0466         cIx(13,:) = this.Idd(cIxToRaw);
+0467         cIx(14,:) = this.Ide(cIxToRaw);
+0468 
+0469         <span class="comment">% make sure that indices fit inside selection range</span>
+0470         <span class="keyword">for</span> k=3:numel(selRange)
+0471             tmp = cIx(k-2,:);
+0472             <span class="keyword">for</span> l=1:numel(selRange{k})
+0473                 cIx(k-2,tmp==selRange{k}(l)) = l;
+0474             <span class="keyword">end</span>
+0475         <span class="keyword">end</span>
+0476 
+0477         cIxToTarg = this.sub2ind_double(selRangeSz(3:end),cIx(1,:),cIx(2,:),cIx(3,:),<span class="keyword">...</span>
+0478             cIx(4,:),cIx(5,:),cIx(6,:),cIx(7,:),cIx(8,:),cIx(9,:),<span class="keyword">...</span>
+0479             cIx(10,:),cIx(11,:),cIx(12,:),cIx(13,:),cIx(14,:));
+0480 
+0481         mem = this.memPos(cIxToRaw);
+0482         <span class="comment">% sort mem for quicker access, sort cIxToTarg/Raw accordingly</span>
+0483         [mem,ix]  = sort(mem);
+0484         cIxToTarg = cIxToTarg(ix);
+0485         cIxToRaw  = cIxToRaw(ix);
+0486         clear ix;
+0487 
+0488         <span class="comment">% For a call of type data{:,:,1:3} matlab expects more than one</span>
+0489         <span class="comment">% output variable (three in this case) and will throw an error</span>
+0490         <span class="comment">% otherwise. This is a lazy way (and the only one I know of) to</span>
+0491         <span class="comment">% fix this.</span>
+0492         varargout    = cell(1, nargout);
+0493         varargout{1} = this.readData(mem,cIxToTarg,cIxToRaw,selRange,selRangeSz,outSize);
+0494     <span class="keyword">end</span> <span class="comment">% of subsref</span>
+0495 
+0496     <a name="_sub5" href="#_subfunctions" class="code">function out = unsorted(this,ival)</a>
+0497         <span class="comment">% returns the unsorted data [NCol,NCha,#samples in acq. order]</span>
+0498         <span class="keyword">if</span> ~exist(<span class="string">'ival'</span>,<span class="string">'var'</span>)
+0499             mem = this.memPos;
+0500         <span class="keyword">else</span>
+0501             mem = this.memPos(ival);
+0502         <span class="keyword">end</span>
+0503         out = this.readData(mem);
+0504     <span class="keyword">end</span>
+0505 
+0506     <a name="_sub6" href="#_subfunctions" class="code">function out = readData(this,mem,cIxToTarg,cIxToRaw,selRange,selRangeSz,outSize)</a>
+0507 
+0508         <span class="keyword">if</span> ~exist(<span class="string">'outSize'</span>,<span class="string">'var'</span>)
+0509             selRange{1} = <span class="string">':'</span>;
+0510             selRange{2} = <span class="string">':'</span>;
+0511             outSize = [this.dataSize(1:2),numel(mem)];
+0512             selRangeSz = outSize;
+0513             cIxToTarg = 1:selRangeSz(3);
+0514             cIxToRaw  = cIxToTarg;
+0515         <span class="keyword">else</span>
+0516             <span class="keyword">if</span> isequal( selRange{1}(:), (1:this.dataSize(1)).' )
+0517                 selRange{1} = <span class="string">':'</span>;
+0518             <span class="keyword">end</span>
+0519             <span class="keyword">if</span> isequal( selRange{2}(:), (1:this.dataSize(2)).' )
+0520                 selRange{2} = <span class="string">':'</span>;
+0521             <span class="keyword">end</span>
+0522         <span class="keyword">end</span>
+0523         out = complex(zeros(outSize,<span class="string">'single'</span>));
+0524         out = reshape(out, selRangeSz(1), selRangeSz(2), []);
+0525 
+0526         <span class="keyword">if</span> isempty( mem )
+0527             out = reshape(out,outSize);
+0528             <span class="keyword">return</span>
+0529         <span class="keyword">end</span>
+0530 
+0531         cIxToTarg = this.cast2MinimalUint( cIxToTarg );
+0532 
+0533         <span class="comment">% subsref overloading makes this.that-calls slow, so we need to</span>
+0534         <span class="comment">% avoid them whenever possible</span>
+0535         szScanHeader = this.freadInfo.szScanHeader;
+0536         readSize     = this.freadInfo.sz;
+0537         readShape    = this.freadInfo.shape;
+0538         readCut      = this.freadInfo.cut;
+0539         keepOS       = [1:this.NCol/4, 1+this.NCol*3/4:this.NCol];
+0540         bRemoveOS    = this.arg.removeOS;
+0541         bIsReflected = this.IsReflected( cIxToRaw );
+0542         bRegrid      = this.flagRampSampRegrid &amp;&amp; numel(this.rampSampTrj);
+0543         <span class="comment">%SRY store information about raw data correction</span>
+0544         bDoRawDataCorrect = this.arg.doRawDataCorrect;
+0545         bIsRawDataCorrect = this.IsRawDataCorrect( cIxToRaw );
+0546         isBrokenRead      = false;
+0547         <span class="keyword">if</span> (bDoRawDataCorrect)
+0548             rawDataCorrect = this.arg.rawDataCorrectionFactors;
+0549         <span class="keyword">end</span>
+0550 
+0551         <span class="comment">% MiVö: Raw data are read line-by-line in portions of 2xNColxNCha float32 points (2 for complex).</span>
+0552         <span class="comment">% Computing and sorting(!) on these small portions is quite expensive, esp. when</span>
+0553         <span class="comment">% it employs non-sequential memory paths. Examples are non-linear k-space acquisition</span>
+0554         <span class="comment">% or reflected lines.</span>
+0555         <span class="comment">% This can be sped up if slightly larger blocks of raw data are collected, first.</span>
+0556         <span class="comment">% Whenever a block is full, we do all those operations and save it in the final &quot;out&quot; array.</span>
+0557         <span class="comment">% What's a good block size? Depends on data size and machine (probably L2/L3/L4 cache sizes).</span>
+0558         <span class="comment">% So...? Start with a small block, measure the time-per-line and double block size until</span>
+0559         <span class="comment">% a minimum is found. Seems sufficiently robust to end up in a close-to-optimal size for every</span>
+0560         <span class="comment">% machine an data.</span>
+0561         blockSz   = 2;          <span class="comment">% size of blocks; must be 2^n; will be increased</span>
+0562         doLockblockSz = false;  <span class="comment">% whether blockSZ should be left untouched</span>
+0563         tprev     = inf;        <span class="comment">% previous time-per-line</span>
+0564         blockCtr  = 0;
+0565         blockInit = -inf(readShape(1), readShape(2), blockSz, <span class="string">'single'</span>); <span class="comment">%init with garbage</span>
+0566         blockInit = complex( blockInit );
+0567         block     = blockInit;
+0568         
+0569         <span class="keyword">if</span> bRegrid
+0570             v1       = single(1:selRangeSz(2));
+0571             v2       = single(1:blockSz);
+0572             rsTrj    = {this.rampSampTrj,v1,v2};
+0573             trgTrj   = linspace(min(this.rampSampTrj),max(this.rampSampTrj),this.dataSize(1));
+0574             trgTrj   = {trgTrj,v1,v2};
+0575         <span class="keyword">end</span>
+0576     
+0577         <span class="comment">% counter for proper scaling of averages/segments</span>
+0578         count_ave = zeros([1 1 size(out,3)],<span class="string">'single'</span>);
+0579         kMax      = numel( mem );   <span class="comment">% max loop index</span>
+0580 
+0581         fid = this.fileopen();
+0582         
+0583         <span class="keyword">for</span> k = 1:kMax            
+0584             <span class="comment">% skip scan header</span>
+0585             fseek(fid,mem(k) + szScanHeader,<span class="string">'bof'</span>);
+0586             raw = fread(fid, readSize, <span class="string">'float=&gt;single'</span>).';
+0587 
+0588             <span class="comment">% MiVö: With incomplete files fread() returns less than readSize points. The subsequent reshape will therefore error out.</span>
+0589             <span class="comment">%       We could check if numel(raw) == prod(readSize), but people recommend exception handling for performance</span>
+0590             <span class="comment">%       reasons. Do it.</span>
+0591             <span class="keyword">try</span>
+0592                 raw = reshape( complex(raw(:,1), raw(:,2)), readShape);
+0593             <span class="keyword">catch</span> exc
+0594                 offset_bytes = mem(k) + szScanHeader;
+0595                 <span class="comment">%remainingSz = readSize(2) - size(raw,1);</span>
+0596                 warning( [mfilename() <span class="string">':UnxpctdEOF'</span>],  <span class="keyword">...</span>
+0597                           [ <span class="string">'\nAn unexpected read error occurred at this byte offset: %d (%g GiB)\n'</span><span class="keyword">...</span>
+0598                             <span class="string">'Actual read size is [%s], desired size was: [%s]\n'</span>                    <span class="keyword">...</span>
+0599                             <span class="string">'Will ignore this line and stop reading.\n'</span>                             <span class="keyword">...</span>
+0600                             <span class="string">'=== MATLABs error message ================\n'</span>                          <span class="keyword">...</span>
+0601                             exc.message                                                             <span class="keyword">...</span>
+0602                             <span class="string">'\n=== end of error =========================\n'</span>                        <span class="keyword">...</span>
+0603                             ], offset_bytes, offset_bytes/1024^3, num2str(size(raw)), num2str(readSize.') )
+0604 
+0605                 <span class="comment">% Reject this data fragment. To do so, init with the values of blockInit</span>
+0606                 clear raw
+0607                 raw( 1:prod(readShape) ) = blockInit(1);
+0608                 raw = reshape( raw, readShape );
+0609                 isBrokenRead = true;   <span class="comment">% remember it and bail out later</span>
+0610             <span class="keyword">end</span>
+0611 
+0612             blockCtr = blockCtr + 1;
+0613             block(:,:,blockCtr) = raw;  <span class="comment">% fast serial storage in a cache array</span>
+0614             
+0615             <span class="comment">% Do expensive computations and reorderings on the gathered block.</span>
+0616             <span class="comment">% Unfortunately, a lot of code is necessary, but that is executed much less</span>
+0617             <span class="comment">% frequent, so its worthwhile for speed.</span>
+0618             <span class="comment">% TODO: Do *everything* block-by-block</span>
+0619             <span class="keyword">if</span> blockCtr == blockSz || k == kMax || (isBrokenRead &amp;&amp; blockCtr &gt; 1)
+0620                 s = tic;    <span class="comment">% measure the time to process a block of data</span>
+0621             
+0622                 <span class="comment">% remove MDH data from block:</span>
+0623                 block = block(readCut,:,:);
+0624                 
+0625                 <span class="keyword">if</span> bRegrid
+0626                     F     = griddedInterpolant(rsTrj,block);
+0627                     block = F(trgTrj);
+0628                 <span class="keyword">elseif</span> bRemoveOS <span class="comment">% remove oversampling in read</span>
+0629                     block = ifft( block,[],1);
+0630                     block =  fft( block(keepOS,:,:),[],1);
+0631                 <span class="keyword">end</span>
+0632 
+0633                 <span class="keyword">if</span> ( bDoRawDataCorrect &amp;&amp; bIsRawDataCorrect(k) )
+0634                     <span class="comment">%SRY apply raw data correction if necessary</span>
+0635                     block = bsxfun(@times, block, rawDataCorrect);
+0636                 <span class="keyword">end</span>
+0637                 
+0638                 <span class="keyword">if</span> blockCtr == blockSz    <span class="comment">% the typical trivial case</span>
+0639                     ix = 1 + k - blockSz : k;
+0640                     validIdx = <span class="string">':'</span>;
+0641                 <span class="keyword">else</span>
+0642                     <span class="comment">% Using find() is expensive. Only do it in non-trivial cases</span>
+0643                     validIdx = any(any( isfinite(block), 1 ),2);
+0644                     ix = find(validIdx);
+0645                     ix = ix - numel(ix) + k;
+0646                 <span class="keyword">end</span>
+0647                 
+0648                 isRefl = bIsReflected(ix);
+0649                 block(:,:,isRefl) = block(end:-1:1,:,isRefl);
+0650                 
+0651                 <span class="keyword">if</span> ~isequal(selRange{1},<span class="string">':'</span>) || ~isequal(selRange{2},<span class="string">':'</span>) || ~isequal(validIdx,<span class="string">':'</span>)
+0652                     block = block( selRange{1}, selRange{2}, validIdx );    <span class="comment">% a bit slow</span>
+0653                 <span class="keyword">end</span>
+0654                 
+0655                 [sortIdx, I] = sort( cIxToTarg(ix), <span class="string">'ascend'</span> );
+0656                 block = block(:,:,I);     <span class="comment">% reorder according to sorted target indices</span>
+0657 
+0658                 <span class="comment">% Mark duplicate indices with 1; we'll have to treat them special for proper averaging</span>
+0659                 <span class="comment">% Bonus: The very first storage can be made much faster, because it's in-place.</span>
+0660                 <span class="comment">%        Matlab urgently needs a &quot;+=&quot; operater, which makes &quot;A(:,:,idx) = A(:,:,idx) + B&quot;</span>
+0661                 <span class="comment">%        in-place and more readable.</span>
+0662                 isDupe  = [ false, diff(sortIdx) == 0 ];
+0663 
+0664                 idx1 = sortIdx(~isDupe);     <span class="comment">% acquired once in this block</span>
+0665                 idxN = sortIdx( isDupe);     <span class="comment">% acquired multiple times</span>
+0666 
+0667                 count_ave(idx1) = count_ave(idx1) + 1;
+0668 
+0669                 <span class="keyword">if</span> isempty( idxN )
+0670                     <span class="comment">% no duplicates</span>
+0671                     <span class="keyword">if</span> all( count_ave(idx1) == 1 )  <span class="comment">% first acquisition of this line</span>
+0672                         out(:,:,idx1) = block;                              <span class="comment">% fast</span>
+0673                     <span class="keyword">else</span>
+0674                         out(:,:,idx1) = out(:,:,idx1) + block;              <span class="comment">% slow</span>
+0675                     <span class="keyword">end</span>
+0676                 <span class="keyword">else</span>
+0677                     out(:,:,idx1) = out(:,:,idx1) + block(:,:,~isDupe);     <span class="comment">% slower</span>
+0678 
+0679                     block = block(:,:,isDupe);
+0680                     <span class="keyword">for</span> n = 1:numel(idxN)
+0681                         out(:,:,idxN(n)) = out(:,:,idxN(n)) + block(:,:,n); <span class="comment">% snail :-)</span>
+0682                         count_ave(idxN(n)) = count_ave(idxN(n)) + 1;
+0683                     <span class="keyword">end</span>
+0684                 <span class="keyword">end</span>
+0685 
+0686                 <span class="comment">% At the first few iterations, evaluate the spent time-per-line and decide</span>
+0687                 <span class="comment">% what to do with the block size.</span>
+0688                 <span class="keyword">if</span> ~doLockblockSz
+0689                     t = 1e6 * toc(s)/blockSz;   <span class="comment">% micro seconds</span>
+0690                     
+0691                     <span class="keyword">if</span> t &lt;= 1.1 * tprev <span class="comment">% allow 10% inaccuracy. Usually bigger == better</span>
+0692                         <span class="comment">% New block size was faster. Go a step further.</span>
+0693                         blockSz = blockSz * 2;
+0694                         blockInit = cat(3, blockInit, blockInit);
+0695                     <span class="keyword">else</span>
+0696                         <span class="comment">% regression; reset size and lock it</span>
+0697                         blockSz = max( blockSz/2, 1 );
+0698                         blockInit = blockInit(:,:,1:blockSz);
+0699                         doLockblockSz = true;
+0700                     <span class="keyword">end</span>
+0701                     <span class="keyword">if</span> bRegrid
+0702                         rsTrj{3}  = single(1:blockSz);
+0703                         trgTrj{3} = rsTrj{3};
+0704                     <span class="keyword">end</span>
+0705                     tprev = t;
+0706                 <span class="keyword">end</span>
+0707 
+0708                 blockCtr = 0;
+0709                 block = blockInit;  <span class="comment">% reset to garbage</span>
+0710             <span class="keyword">end</span>
+0711 
+0712             <span class="keyword">if</span> isBrokenRead
+0713                 this.isBrokenFile = true;
+0714                 <span class="keyword">break</span>
+0715             <span class="keyword">end</span>
+0716             
+0717         <span class="keyword">end</span>
+0718 
+0719         fclose(fid);
+0720 
+0721         <span class="comment">% proper scaling (we don't want to sum our data but average it)</span>
+0722         <span class="comment">% For large &quot;out&quot; bsxfun(@rdivide,out,count_ave) is incredibly faster than</span>
+0723         <span class="comment">% bsxfun(@times,out,count_ave)!</span>
+0724         <span class="comment">% @rdivide is also running in parallel, while @times is not. :-/</span>
+0725         <span class="keyword">if</span> any( reshape(count_ave,[],1) &gt; 1 )
+0726             clearvars -except  out  count_ave  outSize
+0727             count_ave = max( 1, count_ave );
+0728             out       = bsxfun( @rdivide, out, count_ave);
+0729         <span class="keyword">end</span>
+0730 
+0731         out = reshape(out,outSize);
+0732     <span class="keyword">end</span> <span class="comment">% of readData</span>
+0733 
+0734 
+0735     <a name="_sub7" href="#_subfunctions" class="code">function setDefaultFlags(this)</a>
+0736         <span class="comment">% method to set flags to default values</span>
+0737         this.arg.removeOS            = false;
+0738         this.arg.doAverage           = false;
+0739         this.arg.averageReps         = false;
+0740         this.arg.averageSets         = false;
+0741         this.arg.ignoreSeg           = false;
+0742         this.flagRampSampRegrid      = false;
+0743         this.arg.doRawDataCorrect    = false;
+0744         <span class="keyword">if</span> strcmp(this.dataType,<span class="string">'image'</span>) || strcmp(this.dataType,<span class="string">'phasecor'</span>) || strcmp(this.dataType,<span class="string">'phasestab'</span>)
+0745             this.arg.skipToFirstLine = false;
+0746         <span class="keyword">else</span>
+0747             this.arg.skipToFirstLine = true;
+0748         <span class="keyword">end</span>
+0749         <span class="keyword">if</span> ~isfield(this.arg,<span class="string">'rawDataCorrectionFactors'</span>)
+0750             this.arg.rawDataCorrectionFactors = [];
+0751         <span class="keyword">end</span>
+0752     <span class="keyword">end</span>
+0753 
+0754     <a name="_sub8" href="#_subfunctions" class="code">function dummy = resetFlags(this)</a>
+0755         <span class="comment">% method to reset flags to default values</span>
+0756         this.flagRemoveOS            = false;
+0757         this.flagDoAverage           = false;
+0758         this.flagAverageReps         = false;
+0759         this.flagAverageSets         = false;
+0760         this.flagIgnoreSeg           = false;
+0761         this.flagRampSampRegrid      = false;
+0762         this.flagDoRawDataCorrect    = false;
+0763         <span class="keyword">if</span> strcmp(this.dataType,<span class="string">'image'</span>) || strcmp(this.dataType,<span class="string">'phasecor'</span>) || strcmp(this.dataType,<span class="string">'phasestab'</span>)
+0764             this.arg.skipToFirstLine = false;
+0765         <span class="keyword">else</span>
+0766             this.arg.skipToFirstLine = true;
+0767         <span class="keyword">end</span>
+0768         dummy = [];
+0769     <span class="keyword">end</span>
+0770 
+0771     <a name="_sub9" href="#_subfunctions" class="code">function set.flagRemoveOS(this,val)</a>
+0772         <span class="comment">% set method for removeOS</span>
+0773         this.arg.removeOS = logical(val);
+0774 
+0775         <span class="comment">% we also need to recalculate our data size:</span>
+0776         <span class="keyword">if</span> this.arg.removeOS
+0777             this.dataSize(1) = this.NCol(1)/2;
+0778             this.sqzSize(1)  = this.NCol(1)/2;
+0779         <span class="keyword">else</span>
+0780             this.dataSize(1) = this.NCol(1);
+0781             this.sqzSize(1)  = this.NCol(1);
+0782         <span class="keyword">end</span>
+0783     <span class="keyword">end</span>
+0784 
+0785 
+0786     <a name="_sub10" href="#_subfunctions" class="code">function out = get.flagRemoveOS(this)</a>
+0787         out = this.arg.removeOS;
+0788     <span class="keyword">end</span>
+0789 
+0790 
+0791     <a name="_sub11" href="#_subfunctions" class="code">function set.flagDoAverage(this,val)</a>
+0792         <span class="comment">% set method for doAverage</span>
+0793         this.arg.doAverage = logical(val);
+0794 
+0795         <span class="keyword">if</span> this.arg.doAverage
+0796             this.dataSize(6) = 1;
+0797         <span class="keyword">else</span>
+0798             this.dataSize(6) = this.NAve;
+0799         <span class="keyword">end</span>
+0800 
+0801         <span class="comment">% update sqzSize</span>
+0802         this.calcSqzSize;
+0803     <span class="keyword">end</span>
+0804 
+0805 
+0806     <a name="_sub12" href="#_subfunctions" class="code">function out = get.flagDoAverage(this)</a>
+0807         out = this.arg.doAverage;
+0808     <span class="keyword">end</span>
+0809 
+0810     <a name="_sub13" href="#_subfunctions" class="code">function set.flagAverageReps(this,val)</a>
+0811         <span class="comment">% set method for doAverage</span>
+0812         this.arg.averageReps = logical(val);
+0813 
+0814         <span class="keyword">if</span> this.arg.averageReps
+0815             this.dataSize(9) = 1;
+0816         <span class="keyword">else</span>
+0817             this.dataSize(9) = this.NRep;
+0818         <span class="keyword">end</span>
+0819 
+0820         <span class="comment">% update sqzSize</span>
+0821         this.calcSqzSize;
+0822     <span class="keyword">end</span>
+0823 
+0824 
+0825     <a name="_sub14" href="#_subfunctions" class="code">function out = get.flagAverageReps(this)</a>
+0826         out = this.arg.averageReps;
+0827     <span class="keyword">end</span>
+0828 
+0829 
+0830     <a name="_sub15" href="#_subfunctions" class="code">function set.flagAverageSets(this,val)</a>
+0831         <span class="comment">% set method for doAverage</span>
+0832         this.arg.averageSets = logical(val);
+0833 
+0834         <span class="keyword">if</span> this.arg.averageSets
+0835             this.dataSize(10) = 1;
+0836         <span class="keyword">else</span>
+0837             this.dataSize(10) = this.NSet;
+0838         <span class="keyword">end</span>
+0839 
+0840         <span class="comment">% update sqzSize</span>
+0841         this.calcSqzSize;
+0842     <span class="keyword">end</span>
+0843 
+0844 
+0845     <a name="_sub16" href="#_subfunctions" class="code">function out = get.flagAverageSets(this)</a>
+0846         out = this.arg.averageSets;
+0847     <span class="keyword">end</span>
+0848 
+0849 
+0850     <a name="_sub17" href="#_subfunctions" class="code">function set.flagSkipToFirstLine(this,val)</a>
+0851         val = logical(val);
+0852         <span class="keyword">if</span> val ~= this.arg.skipToFirstLine
+0853             this.arg.skipToFirstLine = val;
+0854 
+0855             <span class="keyword">if</span> this.arg.skipToFirstLine
+0856                 this.skipLin = min(this.Lin)-1;
+0857                 this.skipPar = min(this.Par)-1;
+0858             <span class="keyword">else</span>
+0859                 this.skipLin = 0;
+0860                 this.skipPar = 0;
+0861             <span class="keyword">end</span>
+0862             NLinAlloc = max(1, this.NLin - this.skipLin);
+0863             NParAlloc = max(1, this.NPar - this.skipPar);
+0864             this.fullSize(3:4) = [NLinAlloc NParAlloc];
+0865             this.dataSize(3:4) = this.fullSize(3:4);
+0866 
+0867             <span class="comment">% update sqzSize</span>
+0868             this.calcSqzSize;
+0869             <span class="comment">% update indices</span>
+0870             this.calcIndices;
+0871         <span class="keyword">end</span>
+0872     <span class="keyword">end</span>
+0873 
+0874 
+0875     <a name="_sub18" href="#_subfunctions" class="code">function out = get.flagSkipToFirstLine(this)</a>
+0876         out = this.arg.skipToFirstLine;
+0877     <span class="keyword">end</span>
+0878 
+0879 
+0880     <a name="_sub19" href="#_subfunctions" class="code">function set.flagIgnoreSeg(this,val)</a>
+0881         <span class="comment">% set method for ignoreSeg</span>
+0882         this.arg.ignoreSeg = logical(val);
+0883 
+0884         <span class="keyword">if</span> this.arg.ignoreSeg
+0885             this.dataSize(11) = 1;
+0886         <span class="keyword">else</span>
+0887             this.dataSize(11) = this.NSeg;
+0888         <span class="keyword">end</span>
+0889 
+0890         <span class="comment">% update sqzSize</span>
+0891         this.calcSqzSize;
+0892     <span class="keyword">end</span>
+0893 
+0894 
+0895     <a name="_sub20" href="#_subfunctions" class="code">function out = get.flagIgnoreSeg(this)</a>
+0896         out = this.arg.ignoreSeg;
+0897     <span class="keyword">end</span>
+0898 
+0899 
+0900     <a name="_sub21" href="#_subfunctions" class="code">function out = get.flagRampSampRegrid(this)</a>
+0901         out = this.arg.rampSampRegrid;
+0902     <span class="keyword">end</span>
+0903 
+0904     <a name="_sub22" href="#_subfunctions" class="code">function set.flagRampSampRegrid(this, val)</a>
+0905         val = logical(val);
+0906         <span class="keyword">if</span> (val == true &amp;&amp; isempty(this.rampSampTrj))
+0907             error(<span class="string">'No trajectory for regridding available'</span>);
+0908         <span class="keyword">end</span>
+0909         this.arg.rampSampRegrid = val;
+0910     <span class="keyword">end</span>
+0911 
+0912     <span class="comment">%SRY: accessor methods for raw data correction</span>
+0913     <a name="_sub23" href="#_subfunctions" class="code">function out = get.flagDoRawDataCorrect(this)</a>
+0914         out = this.arg.doRawDataCorrect;
+0915     <span class="keyword">end</span>
+0916 
+0917     <a name="_sub24" href="#_subfunctions" class="code">function set.flagDoRawDataCorrect(this, val)</a>
+0918         val = logical(val);
+0919         <span class="keyword">if</span> (val == true &amp;&amp; strcmp(this.softwareVersion, <span class="string">'vd'</span>))
+0920             error(<span class="string">'raw data correction for VD not supported/tested yet'</span>);
+0921         <span class="keyword">end</span>
+0922 
+0923         this.arg.doRawDataCorrect = val;
+0924     <span class="keyword">end</span>
+0925 
+0926     <a name="_sub25" href="#_subfunctions" class="code">function out = get.RawDataCorrectionFactors(this)</a>
+0927         out = this.arg.rawDataCorrectionFactors;
+0928     <span class="keyword">end</span>
+0929 
+0930     <a name="_sub26" href="#_subfunctions" class="code">function set.RawDataCorrectionFactors(this, val)</a>
+0931         <span class="comment">%this may not work if trying to set the factors before NCha has</span>
+0932         <span class="comment">%a meaningful value (ie before calling clean)</span>
+0933         <span class="keyword">if</span> (~isrow(val) || length(val) ~= this.NCha)
+0934             error(<span class="string">'RawDataCorrectionFactors must be a 1xNCha row vector'</span>);
+0935         <span class="keyword">end</span>
+0936         this.arg.rawDataCorrectionFactors = val;
+0937     <span class="keyword">end</span>
+0938 
+0939 <span class="keyword">end</span>
+0940 
+0941 methods (Access=<span class="string">'protected'</span>)
+0942     <span class="comment">% helper functions</span>
+0943 
+0944     <a name="_sub27" href="#_subfunctions" class="code">function fid = fileopen(this)</a>
+0945         <span class="comment">% look out for unlikely event that someone is switching between</span>
+0946         <span class="comment">% windows and unix systems:</span>
+0947         [path,name,ext] = fileparts(this.filename);
+0948         this.filename   = fullfile(path,[name ext]);
+0949 
+0950         <span class="comment">% test access</span>
+0951         <span class="keyword">if</span> numel(dir(this.filename))==0
+0952             <span class="comment">% update path when file of same name can be found in current</span>
+0953             <span class="comment">% working dir. -- otherwise throw error</span>
+0954             [oldpath,name,ext] = fileparts(this.filename);
+0955             newloc = fullfile(pwd,[name ext]);
+0956             <span class="keyword">if</span> numel(dir(newloc))==1
+0957                 fprintf(<span class="string">'Warning: File location updated from &quot;%s&quot; to current working directory.\n'</span>,oldpath);
+0958                 this.filename = newloc;
+0959             <span class="keyword">else</span>
+0960                 error([<span class="string">'File &quot;'</span> this.filename <span class="string">'&quot; not found.'</span>]);
+0961             <span class="keyword">end</span>
+0962         <span class="keyword">end</span>
+0963         fid = fopen(this.filename);
+0964     <span class="keyword">end</span>
+0965 
+0966     <a name="_sub28" href="#_subfunctions" class="code">function [selRange,selRangeSz,outSize] = calcRange(this,S)</a>
+0967 
+0968         <span class="keyword">switch</span> S.type
+0969             <span class="keyword">case</span> <span class="string">'()'</span>
+0970                 bSqueeze = false;
+0971             <span class="keyword">case</span> <span class="string">'{}'</span>
+0972                 bSqueeze = true;
+0973         <span class="keyword">end</span>
+0974 
+0975         selRange = num2cell(ones(1,numel(this.dataSize)));
+0976         outSize  = ones(1,numel(this.dataSize));
+0977 
+0978         <span class="keyword">if</span> ( isempty(S.subs) || strcmpi(S.subs(1),<span class="string">''</span>) )
+0979             <span class="comment">% obj(): shortcut to select all data</span>
+0980             <span class="comment">% unfortunately, matlab does not allow the statement</span>
+0981             <span class="comment">% obj{}, so we can't use it...</span>
+0982             <span class="comment">% alternative: obj{''} (obj('') also works)</span>
+0983             <span class="keyword">for</span> k=1:numel(this.dataSize)
+0984                 selRange{k}   = 1:this.dataSize(k);
+0985             <span class="keyword">end</span>
+0986             <span class="keyword">if</span> ~bSqueeze
+0987                 outSize = this.dataSize;
+0988             <span class="keyword">else</span>
+0989                 outSize = this.sqzSize;
+0990             <span class="keyword">end</span>
+0991         <span class="keyword">else</span>
+0992             <span class="keyword">for</span> k=1:numel(S.subs)
+0993                 <span class="keyword">if</span> ~bSqueeze
+0994                     cDim = k; <span class="comment">% nothing to do</span>
+0995                 <span class="keyword">else</span>
+0996                     <span class="comment">% we need to rearrange selRange from squeezed</span>
+0997                     <span class="comment">% to original order</span>
+0998                     cDim = find(strcmp(this.dataDims,this.sqzDims{k}) == 1);
+0999                 <span class="keyword">end</span>
+1000                 <span class="keyword">if</span> strcmp(S.subs{k},<span class="string">':'</span>)
+1001                     <span class="keyword">if</span> k&lt;numel(S.subs)
+1002                         selRange  {cDim} = 1:this.dataSize(cDim);
+1003                     <span class="keyword">else</span> <span class="comment">% all later dimensions selected and 'vectorized'!</span>
+1004                         <span class="keyword">for</span> l=cDim:numel(this.dataSize)
+1005                             selRange{l} = 1:this.dataSize(l);
+1006                         <span class="keyword">end</span>
+1007                         outSize(k) = prod(double(this.dataSize(cDim:end)));
+1008                         <span class="keyword">break</span>; <span class="comment">% jump out ouf for-loop</span>
+1009                     <span class="keyword">end</span>
+1010                 <span class="keyword">elseif</span> isnumeric(S.subs{k})
+1011                     selRange{cDim} = single(S.subs{k});
+1012                 <span class="keyword">else</span>
+1013                     error(<span class="string">'unknown string in brackets (e.g. 1:end does not work here)'</span>);
+1014                 <span class="keyword">end</span>
+1015                 outSize(k) = numel(selRange{cDim});
+1016             <span class="keyword">end</span>
+1017             <span class="keyword">for</span> k=1:numel(selRange)
+1018                 <span class="keyword">if</span> max(selRange{k}) &gt; this.dataSize(k)
+1019                     error(<span class="string">'selection out of range'</span>);
+1020                 <span class="keyword">end</span>
+1021             <span class="keyword">end</span>
+1022         <span class="keyword">end</span>
+1023 
+1024         selRangeSz = ones(1,numel(this.dataSize));
+1025         <span class="keyword">for</span> k=1:numel(selRange)
+1026             selRangeSz(k) = numel(selRange{k});
+1027         <span class="keyword">end</span>
+1028 
+1029         <span class="comment">% now select all averages in case doAverage is selected</span>
+1030         <span class="keyword">if</span> this.arg.doAverage
+1031             selRange{6}  = 1:this.fullSize(6);
+1032         <span class="keyword">end</span>
+1033         <span class="comment">% now select all repetitions in case averageReps is selected</span>
+1034         <span class="keyword">if</span> this.arg.averageReps
+1035             selRange{9}  = 1:this.fullSize(9);
+1036         <span class="keyword">end</span>
+1037         <span class="comment">% now select all sets in case averageSets is selected</span>
+1038         <span class="keyword">if</span> this.arg.averageSets
+1039             selRange{10}  = 1:this.fullSize(10);
+1040         <span class="keyword">end</span>
+1041         <span class="comment">% now select all segments in case ignoreSeg is selected</span>
+1042         <span class="keyword">if</span> this.arg.ignoreSeg
+1043             selRange{11} = 1:this.fullSize(11);
+1044         <span class="keyword">end</span>
+1045 
+1046     <span class="keyword">end</span>
+1047 
+1048     <a name="_sub29" href="#_subfunctions" class="code">function calcSqzSize(this)</a>
+1049         <span class="comment">% calculate sqzSize and sqzDims</span>
+1050         this.sqzSize    = [];
+1051         this.sqzDims    = [];
+1052         this.sqzSize(1) = this.dataSize(1);
+1053         this.sqzDims{1} = <span class="string">'Col'</span>;
+1054         c = 1;
+1055         <span class="keyword">for</span> k=2:numel(this.dataSize)
+1056             <span class="keyword">if</span> this.dataSize(k)&gt;1
+1057                 c = c+1;
+1058                 this.sqzSize(c) = this.dataSize(k);
+1059                 this.sqzDims{c} = this.dataDims{k};
+1060             <span class="keyword">end</span>
+1061         <span class="keyword">end</span>
+1062     <span class="keyword">end</span>
+1063 
+1064     <a name="_sub30" href="#_subfunctions" class="code">function calcIndices(this)</a>
+1065         <span class="comment">% calculate indices to target &amp; source(raw)</span>
+1066         LinIx     = this.Lin  - this.skipLin;
+1067         ParIx     = this.Par  - this.skipPar;
+1068         this.ixToTarget = this.sub2ind_double(this.fullSize(3:end),<span class="keyword">...</span>
+1069             LinIx, ParIx, this.Sli, this.Ave, this.Phs, this.Eco,<span class="keyword">...</span>
+1070             this.Rep, this.Set, this.Seg, this.Ida, this.Idb,<span class="keyword">...</span>
+1071             this.Idc, this.Idd, this.Ide);
+1072 
+1073         <span class="comment">% now calculate inverse index</span>
+1074         <span class="comment">% inverse index of lines that are not measured is zero</span>
+1075         this.ixToRaw = zeros(1,prod(this.fullSize(3:end)),<span class="string">'double'</span>);
+1076 
+1077         this.ixToRaw(this.ixToTarget) = 1:numel(this.ixToTarget);
+1078     <span class="keyword">end</span>
+1079 <span class="keyword">end</span>
+1080 
+1081 methods (Static)
+1082     <span class="comment">% helper functions, accessible from outside via &lt;classname&gt;.function()</span>
+1083     <span class="comment">% without an instance of the class.</span>
+1084 
+1085     <a name="_sub31" href="#_subfunctions" class="code">function ndx = sub2ind_double(sz,varargin)</a>
+1086         <span class="comment">%SUB2IND_double Linear index from multiple subscripts.</span>
+1087         <span class="comment">%   Works like sub2ind but always returns double</span>
+1088         <span class="comment">%   also slightly faster, but no checks</span>
+1089         <span class="comment">%========================================</span>
+1090         sz  = double(sz);
+1091         ndx = double(varargin{end}) - 1;
+1092         <span class="keyword">for</span> i = length(sz)-1:-1:1
+1093             ix  = double(varargin{i});
+1094             ndx = sz(i)*ndx + ix-1;
+1095         <span class="keyword">end</span>
+1096         ndx = ndx + 1;
+1097     <span class="keyword">end</span> <span class="comment">% sub2ind_double</span>
+1098 
+1099     <a name="_sub32" href="#_subfunctions" class="code">function N = cast2MinimalUint( N )</a>
+1100         Nmax = max( reshape(N,[],1) );
+1101         Nmin = min( reshape(N,[],1) );
+1102         <span class="keyword">if</span> Nmin &lt; 0 || Nmax &gt; intmax(<span class="string">'uint64'</span>)
+1103             <span class="keyword">return</span>
+1104         <span class="keyword">end</span>
+1105 
+1106         <span class="keyword">if</span> Nmax &gt; intmax(<span class="string">'uint32'</span>)
+1107             idxClass = <span class="string">'uint64'</span>;
+1108         <span class="keyword">elseif</span> Nmax &gt; intmax(<span class="string">'uint16'</span>)
+1109             idxClass = <span class="string">'uint32'</span>;
+1110         <span class="keyword">else</span>
+1111             idxClass = <span class="string">'uint16'</span>;
+1112         <span class="keyword">end</span>
+1113 
+1114         N = cast( N, idxClass );
+1115     <span class="keyword">end</span> <span class="comment">% cast2MinimalUint()</span>
+1116 
+1117 <span class="keyword">end</span> <span class="comment">% of methods (Static)</span>
+1118 
+1119 <span class="keyword">end</span> <span class="comment">% classdef</span></pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

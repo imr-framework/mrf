@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of rf_rotation</title>
+  <meta name="keywords" content="rf_rotation">
+  <meta name="description" content="RF_ROTATION(phi,alpha)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html EPG_Dict_Sim --><!-- menu.html Function -->
+<h1>rf_rotation
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>RF_ROTATION(phi,alpha)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function T_phi_alpha = rf_rotation (phi,alpha) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">RF_ROTATION(phi,alpha)
+ 3 x 3 rotation matrix in complex representation for RF pulse
+ with phase = phi (from the x axis) and filp angle = alpha
+ See Weigel 2015, Eq. 15</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="EPG_custom.html" class="code" title="function [om_store,echoes] = EPG_custom(seq)">EPG_custom</a>	[om_store,echoes] = EPG_custom(seq)</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function T_phi_alpha = rf_rotation (phi,alpha)</a>
+0002 <span class="comment">%RF_ROTATION(phi,alpha)</span>
+0003 <span class="comment">% 3 x 3 rotation matrix in complex representation for RF pulse</span>
+0004 <span class="comment">% with phase = phi (from the x axis) and filp angle = alpha</span>
+0005 <span class="comment">% See Weigel 2015, Eq. 15</span>
+0006 
+0007 phi = deg2rad(phi);
+0008 alpha = deg2rad(alpha);
+0009 
+0010 T_phi_alpha = [cos(alpha/2).^2                     exp(2*1i*phi)*sin(alpha/2).^2       -1i*exp(1i*phi)*sin(alpha);
+0011            exp(-2*1i*phi)*sin(alpha/2).^2       cos(alpha/2).^2                     1i*exp(-1i*phi)*sin(alpha);
+0012            -1i*0.5.*exp(-1i*phi)* sin(alpha)    1i*0.5.*exp(1i*phi)* sin(alpha)     cos(alpha)];</pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

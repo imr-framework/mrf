@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of EPG_custom</title>
+  <meta name="keywords" content="EPG_custom">
+  <meta name="description" content="[om_store,echoes] = EPG_custom(seq)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html EPG_Dict_Sim --><!-- menu.html Function -->
+<h1>EPG_custom
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>[om_store,echoes] = EPG_custom(seq)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [om_store,echoes] = EPG_custom(seq) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">[om_store,echoes] = EPG_custom(seq)
+ Performs EPG simulation of a general pulse sequence
+ INPUTS 
+     seq: sequence struct with the required fields
+         seq.rf - 2 x P matrix with each column = [phi,alpha]'
+         seq.grad - vector of k-shifts (must be integers)
+         seq.events - cell of strings: 'rf','grad', or 'relax'
+         seq.time - vector of timing for each event in seq.events
+         seq.T1, seq.T2 : T1 and T2 values for relaxation 
+                         (set both to 0 for no relaxation)
+ OUTPUTS
+
+      om_store - 1 x Q cell array of matrices with size (3 x K).
+      Each matrix is a record of configuration states (F+(k),F-(k),Z(k)
+      at all k's generated up to that point. Each matrix corresponds to
+      the elements in seq.events and seq.timing at the same index.
+
+      echoes - output of echo information using findEchoes</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="findEchoes.html" class="code" title="function echoes = findEchoes(seq,om_store)">findEchoes</a>	echoes = FINDECHOES(seq,om_store)</li><li><a href="relax.html" class="code" title="function omega_new = relax(tau,T1,T2,omega)">relax</a>	relax(tau,T1,T2,omega)</li><li><a href="rf_rotation.html" class="code" title="function T_phi_alpha = rf_rotation (phi,alpha)">rf_rotation</a>	RF_ROTATION(phi,alpha)</li><li><a href="shift_grad.html" class="code" title="function omega_new = shift_grad(delk,omega)">shift_grad</a>	SHIFT_GRAD(delk,omega)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="EPGsim_MRF.html" class="code" title="function [om_store,echoes,seq] = EPGsim_MRF(phis,alphas,TRs,rlx)">EPGsim_MRF</a>	[om_store, echoes, seq] = EPGsim_MRF(phis,alphas,TRs,rlx)</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [om_store,echoes] = EPG_custom(seq)</a>
+0002 <span class="comment">%[om_store,echoes] = EPG_custom(seq)</span>
+0003 <span class="comment">% Performs EPG simulation of a general pulse sequence</span>
+0004 <span class="comment">% INPUTS</span>
+0005 <span class="comment">%     seq: sequence struct with the required fields</span>
+0006 <span class="comment">%         seq.rf - 2 x P matrix with each column = [phi,alpha]'</span>
+0007 <span class="comment">%         seq.grad - vector of k-shifts (must be integers)</span>
+0008 <span class="comment">%         seq.events - cell of strings: 'rf','grad', or 'relax'</span>
+0009 <span class="comment">%         seq.time - vector of timing for each event in seq.events</span>
+0010 <span class="comment">%         seq.T1, seq.T2 : T1 and T2 values for relaxation</span>
+0011 <span class="comment">%                         (set both to 0 for no relaxation)</span>
+0012 <span class="comment">% OUTPUTS</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">%      om_store - 1 x Q cell array of matrices with size (3 x K).</span>
+0015 <span class="comment">%      Each matrix is a record of configuration states (F+(k),F-(k),Z(k)</span>
+0016 <span class="comment">%      at all k's generated up to that point. Each matrix corresponds to</span>
+0017 <span class="comment">%      the elements in seq.events and seq.timing at the same index.</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">%      echoes - output of echo information using findEchoes</span>
+0020 
+0021 <span class="comment">%%  Inputs</span>
+0022 rf = seq.rf;
+0023 grad = seq.grad;
+0024 timing = seq.time; <span class="comment">% in ms</span>
+0025 uniqtimes = unique(timing);
+0026 events = seq.events; <span class="comment">% 3 types of events: 'rf','grad', and 'relax'</span>
+0027 N = length(events);
+0028 T1 = seq.T1; <span class="comment">% must be populated - set to 0 for no relaxation</span>
+0029 T2 = seq.T2; <span class="comment">% must be populated - set to 0 for no relaxation</span>
+0030 <span class="comment">%% Initialize</span>
+0031 omega = [0 0 1].'; <span class="comment">% initial magnetization is always at equilibrium (+z)</span>
+0032 <span class="comment">%delk=1; %Unit dephasing</span>
+0033 rf_index = 1;
+0034 om_index = 1;
+0035 grad_index = 1;
+0036 <span class="comment">%% Describe pulse sequence in steps</span>
+0037 om_store = cell(1,N);
+0038 <span class="keyword">for</span> n = 1:N
+0039    <span class="keyword">switch</span> events{n}
+0040        <span class="keyword">case</span> <span class="string">'rf'</span>
+0041            omega = <a href="rf_rotation.html" class="code" title="function T_phi_alpha = rf_rotation (phi,alpha)">rf_rotation</a>(rf(1,rf_index),rf(2,rf_index))*omega;
+0042            rf_index = rf_index + 1;
+0043        <span class="keyword">case</span> <span class="string">'grad'</span>
+0044            omega = <a href="shift_grad.html" class="code" title="function omega_new = shift_grad(delk,omega)">shift_grad</a>(grad(grad_index),omega);     
+0045            grad_index = grad_index + 1;
+0046        <span class="keyword">case</span> <span class="string">'relax'</span>
+0047            q = find(uniqtimes==timing(n));
+0048            tau = uniqtimes(q) - uniqtimes(q-1);
+0049            omega = <a href="relax.html" class="code" title="function omega_new = relax(tau,T1,T2,omega)">relax</a>(tau,T1,T2,omega);
+0050    <span class="keyword">end</span>
+0051    om_store{om_index} = omega;
+0052    om_index = om_index + 1;
+0053 <span class="keyword">end</span>
+0054 <span class="comment">% Find and store echos</span>
+0055 echoes = <a href="findEchoes.html" class="code" title="function echoes = findEchoes(seq,om_store)">findEchoes</a>(seq,om_store);
+0056 
+0057 <span class="keyword">end</span>
+0058</pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

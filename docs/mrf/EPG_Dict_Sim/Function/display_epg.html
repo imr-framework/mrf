@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of display_epg</title>
+  <meta name="keywords" content="display_epg">
+  <meta name="description" content="DISPLAY_EPG(om_store, seq, annot, ax)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html EPG_Dict_Sim --><!-- menu.html Function -->
+<h1>display_epg
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>DISPLAY_EPG(om_store, seq, annot, ax)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function display_epg(om_store,seq,annot,ax) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">DISPLAY_EPG(om_store, seq, annot, ax)
+ Displays extended phase graph (EPG) given configiration state values and
+ pulse sequence.
+
+ om_store: cell array of config. state history, genereated by EPG_custom.m
+ seq: struct containing sequence information (see EPG_custom.m)
+ annot: 1 or 0, whether to display k-state populations
+ ax: axis to display on (optional); if none, it defaults to a new figure</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function display_epg(om_store,seq,annot,ax)</a>
+0002 <span class="comment">%DISPLAY_EPG(om_store, seq, annot, ax)</span>
+0003 <span class="comment">% Displays extended phase graph (EPG) given configiration state values and</span>
+0004 <span class="comment">% pulse sequence.</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% om_store: cell array of config. state history, genereated by EPG_custom.m</span>
+0007 <span class="comment">% seq: struct containing sequence information (see EPG_custom.m)</span>
+0008 <span class="comment">% annot: 1 or 0, whether to display k-state populations</span>
+0009 <span class="comment">% ax: axis to display on (optional); if none, it defaults to a new figure</span>
+0010 
+0011 <span class="comment">% Created by Sairam Geethanath</span>
+0012 <span class="comment">% Modified by Gehua Tong, Nov 14 2018</span>
+0013 
+0014 kmax = size(om_store{length(om_store)},2);
+0015 <span class="keyword">if</span> kmax ~= 1
+0016     kstates = -kmax+1:kmax-1; 
+0017 <span class="keyword">else</span> 
+0018     kstates = [-1,1];
+0019 <span class="keyword">end</span>
+0020 grad_cnt =1; <span class="comment">% indexing gradient</span>
+0021 rf_cnt=1; <span class="comment">% indexing rf pulse</span>
+0022 timing = seq.time; 
+0023 uniqtimes = unique(timing);
+0024 grad = seq.grad;
+0025 
+0026 <span class="keyword">if</span> nargin &lt; 4
+0027     ax = gca;
+0028 <span class="keyword">end</span>
+0029 <span class="comment">%% For t==0 case - must be true for all sequences</span>
+0030 <span class="comment">% Plot horizontal axis (k=0)</span>
+0031 plot(ax,[0 seq.time(end)],[0 0],<span class="string">'-k'</span>,<span class="string">'LineWidth'</span>,1.5)
+0032 hold on
+0033 <span class="comment">% Plot first RF pulse</span>
+0034 t=0.*ones(1,length(kstates));
+0035 plot(ax,t,kstates,<span class="string">'-'</span>,<span class="string">'Color'</span>,[0.5 0.5 0.5],<span class="string">'LineWidth'</span>,3);
+0036 flip = seq.rf(:,rf_cnt).'; <span class="comment">% why .'???</span>
+0037 text(ax,t(1),kmax-1,[<span class="string">'('</span>,num2str(flip(1)), <span class="string">'^{\circ}'</span>,<span class="string">','</span>,num2str(flip(2)),<span class="string">'^{\circ}'</span>,<span class="string">')'</span>] ,<span class="string">'FontSize'</span>,10);
+0038 rf_cnt = rf_cnt + 1;
+0039 <span class="comment">% set axis for entire graph</span>
+0040 <span class="comment">%axis(ax,[0 timing(end) -kmax+1 kmax-1]);</span>
+0041 <span class="comment">%% For t &gt; 0, plot on!</span>
+0042 <span class="keyword">for</span> seq_read = 2:length(seq.events) <span class="comment">% for all events after the first pulse</span>
+0043 <span class="comment">% Get data</span>
+0044 <span class="comment">%           om_current = omega{seq_read};</span>
+0045             om_past  = om_store{seq_read -1};
+0046             
+0047             <span class="comment">% Fp - states -</span>
+0048 <span class="comment">%             Fpc = squeeze(om_current(1,:));</span>
+0049             Fpp = squeeze(om_past(1,:)); <span class="comment">% all the +k states and k=0</span>
+0050             
+0051             <span class="comment">% Fm - states -</span>
+0052 <span class="comment">%             Fmc = squeeze(om_current(2,:));</span>
+0053             Fmp = squeeze(om_past(2,:)); <span class="comment">% all the -k states and k=0</span>
+0054                
+0055             <span class="comment">% Zk - states -</span>
+0056 <span class="comment">%             Zc = squeeze(om_current(3,:));</span>
+0057             Zp = squeeze(om_past(3,:)); <span class="comment">% all the Z states, k&gt;=0</span>
+0058             
+0059     <span class="keyword">switch</span> (seq.events{seq_read})
+0060         <span class="comment">% --- Event type : RF pulse ---</span>
+0061         <span class="keyword">case</span> <span class="string">'rf'</span> <span class="comment">%exchanges populations among three states; depict only 2</span>
+0062             <span class="comment">% Draw vertical line spanning all k-states</span>
+0063             t = seq.time(seq_read).*ones(1,length(kstates));
+0064             plot(ax,t,kstates,<span class="string">'Color'</span>,[0.5 0.5 0.5],<span class="string">'LineWidth'</span>,3); hold on; 
+0065             <span class="comment">% Get and label RF angles</span>
+0066             flip = seq.rf(:,rf_cnt).';
+0067             text(ax,t(1),max(kmax-1,1),[<span class="string">'('</span>,num2str(flip(1)), <span class="string">'^{\circ}'</span>, <span class="keyword">...</span><span class="comment"> </span>
+0068                 <span class="string">','</span>,num2str(flip(2)),<span class="string">'^{\circ}'</span>,<span class="string">')'</span>] ,<span class="string">'FontSize'</span>,10);
+0069             <span class="comment">% Increase RF count</span>
+0070             rf_cnt = rf_cnt + 1;
+0071 
+0072        <span class="comment">% --- Event type: Gradient ---</span>
+0073         <span class="keyword">case</span> <span class="string">'grad'</span> <span class="comment">% important: at a given time, grad always happens before rf</span>
+0074              <span class="comment">% Increase gradient count</span>
+0075              grad_cnt = grad_cnt + 1;
+0076              <span class="comment">%(+) Fp state plot</span>
+0077              Fpp_kstates= find(abs(Fpp)&gt; 5*eps) -1; <span class="comment">% find nonzero states</span>
+0078              <span class="keyword">for</span> k=1:length(Fpp_kstates) <span class="comment">% for each +k state</span>
+0079                 <span class="comment">% vertical locations - [last_k, last_k + grad(in units of delk)]</span>
+0080                   Fp_plot = [Fpp_kstates(k) Fpp_kstates(k)+grad(grad_cnt-1)];
+0081                   t =  [uniqtimes(grad_cnt-1)  uniqtimes(grad_cnt)];
+0082                   plot(ax,t,Fp_plot,<span class="string">'k-'</span>);hold on;
+0083                   <span class="comment">%-----------------------------------------------------------------</span>
+0084                   <span class="comment">%Anotation of config. state value (a complex number for each line)</span>
+0085                   <span class="keyword">if</span>(annot==1) 
+0086                      intensity = round(Fpp(Fpp_kstates(k)+1)*100)/100;
+0087                      text(ax,t(1),Fp_plot(1)+0.5,num2str(intensity),<span class="keyword">...</span>
+0088                               <span class="string">'Color'</span>,[0.01 0.58 0.53],<span class="string">'FontSize'</span>,9);
+0089                   <span class="keyword">end</span>
+0090                   <span class="comment">%-----------------------------------------------------------------</span>
+0091              <span class="keyword">end</span>
+0092              <span class="comment">%(-) Fm state plot</span>
+0093              Fmp_kstates= -1*(find(abs(Fmp)&gt; 5*eps) -1);
+0094              <span class="keyword">for</span> k=1:length(Fmp_kstates)
+0095                  Fp_plot = [Fmp_kstates(k) Fmp_kstates(k)+grad(grad_cnt-1)];
+0096                  t =  [uniqtimes(grad_cnt-1)  uniqtimes(grad_cnt)];
+0097                  plot(ax,t,Fp_plot,<span class="string">'k-'</span>);hold on;
+0098                  
+0099                  <span class="comment">% Echos</span>
+0100                  Fmp_echo = find(Fp_plot==0,1);
+0101                  <span class="keyword">if</span> ~isempty(Fmp_echo)
+0102                      plot(ax,t(Fmp_echo), 0, <span class="string">'--ro'</span>,<span class="string">'LineWidth'</span>,2,<span class="keyword">...</span>
+0103                                     <span class="string">'MarkerEdgeColor'</span>,<span class="string">'k'</span>,<span class="keyword">...</span>
+0104                                     <span class="string">'MarkerFaceColor'</span>,<span class="string">'g'</span>,<span class="keyword">...</span>
+0105                                     <span class="string">'MarkerSize'</span>,10);
+0106                  <span class="keyword">end</span>
+0107                  <span class="keyword">if</span>(annot==1)
+0108                      intensity = round(Fmp(-Fmp_kstates(k)+1)*100)/100;
+0109                      text(ax,t(1),Fp_plot(1)-0.5,num2str(intensity),<span class="keyword">...</span>
+0110                                <span class="string">'Color'</span>,[0.02 0.02 0.67],<span class="string">'FontSize'</span>,9);
+0111                  <span class="keyword">end</span>    
+0112              <span class="keyword">end</span>
+0113              <span class="comment">%Zp state plot</span>
+0114              Zp_kstates= (find(abs(Zp)&gt; 5*eps) -1); 
+0115              <span class="keyword">for</span> k=1:length(Zp_kstates)
+0116                  Fp_plot = [Zp_kstates(k) Zp_kstates(k)];
+0117                  t =  [uniqtimes(grad_cnt-1)  uniqtimes(grad_cnt)];
+0118                  plot(ax,t,Fp_plot,<span class="string">'--k'</span>);hold on;
+0119 
+0120                  <span class="keyword">if</span>(annot==1) 
+0121                      intensity = round(Zp(Zp_kstates(k)+1)*100)/100; 
+0122                      text(ax,t(1),Fp_plot(1),num2str(intensity),<span class="keyword">...</span>
+0123                            <span class="string">'Color'</span>,[1 0.47 0.42],<span class="string">'FontSize'</span>,9);
+0124                  <span class="keyword">end</span>
+0125              <span class="keyword">end</span>
+0126     <span class="keyword">end</span>                
+0127 <span class="keyword">end</span>
+0128 
+0129 title(ax,seq.name,<span class="string">'fontsize'</span>,12);
+0130 xlabel(ax,<span class="string">'Time (ms)'</span>,<span class="string">'fontsize'</span>,12);ylabel(ax,<span class="string">'k states'</span>,<span class="string">'fontsize'</span>,12);
+0131 grid(ax,<span class="string">'ON'</span>);
+0132 
+0133 <span class="comment">%% Plot gradient</span>
+0134 baseline = -kmax-1;
+0135 M = length(uniqtimes);
+0136 <span class="keyword">for</span> m = 2:M
+0137     <span class="keyword">if</span> grad(m-1)&gt;0
+0138        col = <span class="string">'g'</span>; <span class="comment">% positive gradient in green</span>
+0139     <span class="keyword">else</span>
+0140        col = <span class="string">'r'</span>; <span class="comment">% negative gradient in red</span>
+0141     <span class="keyword">end</span>
+0142     area(ax,[uniqtimes(m-1),uniqtimes(m)],<span class="keyword">...</span>
+0143         [baseline+grad(m-1),baseline+grad(m-1)],<span class="string">'FaceColor'</span>,col,<span class="string">'BASEVALUE'</span>,baseline)
+0144     
+0145 <span class="keyword">end</span>
+0146 <span class="comment">% kmax here is the # columns in the last omega matrix</span>
+0147 <span class="comment">% so if kmax is 1, it means no nonzero gradients were used.</span>
+0148 <span class="keyword">if</span> kmax == 1
+0149     axis(ax,[0 timing(end) -1 1]);
+0150 <span class="keyword">else</span> 
+0151     axis(ax,[0 timing(end)  -kmax-1-max(abs(grad)) kmax-1]);
+0152 <span class="keyword">end</span>
+0153 
+0154 xticks(ax,uniqtimes)</pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

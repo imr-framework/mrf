@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ROI_ana_demo</title>
+  <meta name="keywords" content="ROI_ana_demo">
+  <meta name="description" content="">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../menu.html mrf --><!-- menu.html ROI_analysis_tool -->
+<h1>ROI_ana_demo
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong></strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../mrf/ROI_analysis_tool/Function/NIST_ROI_ana.html" class="code" title="function sphere_par = NIST_ROI_ana(map_data, map_type, map_size, fov)">NIST_ROI_ana</a>	Input map mat file and return ROI analysis of a ISMRM/NIST phantom, all</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 clc
+0002 clear
+0003 <span class="comment">%This script is used as a demo for NIST_ROI_ana.m. For now, four sets of</span>
+0004 <span class="comment">%data are used for testing.</span>
+0005 <span class="comment">%       T1_map.mat  T1_map data</span>
+0006 <span class="comment">% T1_map_rot45.mat  T1_map data rotated counterclockwise 45 degrees</span>
+0007 <span class="comment">%       T2_map.mat  T2_map data</span>
+0008 <span class="comment">% T2_map_rot30.mat  T2_map data rotated counterclockwise 30 degree</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% 7/2019 Enlin Qian</span>
+0011 <span class="comment">% # Copyright of the Board of Trustees of Columbia University in the City of New York</span>
+0012 
+0013 <span class="comment">%% Load data</span>
+0014 addpath(genpath(<span class="string">'.'</span>))
+0015 load(<span class="string">'T2_map_rot30.mat'</span>)
+0016 sphere_par = <a href="../../mrf/ROI_analysis_tool/Function/NIST_ROI_ana.html" class="code" title="function sphere_par = NIST_ROI_ana(map_data, map_type, map_size, fov)">NIST_ROI_ana</a>(T2_map_rot, <span class="string">'T2'</span>, 128, 210);</pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

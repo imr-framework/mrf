@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of Complex_Chan_Combining</title>
+  <meta name="keywords" content="Complex_Chan_Combining">
+  <meta name="description" content="This script correct phase differences in each coil using method in [1].">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html Image_Reconstruction --><!-- menu.html Function -->
+<h1>Complex_Chan_Combining
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>This script correct phase differences in each coil using method in [1].</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function coil_filter = Complex_Chan_Combining(image1) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> This script correct phase differences in each coil using method in [1].
+ IUPUT
+     image1  reconstructed image 
+
+ OUTPUT
+ coil_filter  filter used to correct phase from each coil
+ 
+ [1] Roemer P, Edelstein W, Hayes C, Souza S, Mueller O. The NMR phased
+ array. Magn Reson Med. 1990;16(2):192-225. doi:10.1002/mrm.1910160203</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="MRF_recon.html" class="code" title="function image_data_final_Complex = MRF_recon()">MRF_recon</a>	This script uses sliding window method and complex coil combination to</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function coil_filter = Complex_Chan_Combining(image1)</a>
+0002 <span class="comment">% This script correct phase differences in each coil using method in [1].</span>
+0003 <span class="comment">% IUPUT</span>
+0004 <span class="comment">%     image1  reconstructed image</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% OUTPUT</span>
+0007 <span class="comment">% coil_filter  filter used to correct phase from each coil</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% [1] Roemer P, Edelstein W, Hayes C, Souza S, Mueller O. The NMR phased</span>
+0010 <span class="comment">% array. Magn Reson Med. 1990;16(2):192-225. doi:10.1002/mrm.1910160203</span>
+0011 image1 = permute(image1,[1 2 4 3]);
+0012 [Nx, Ny, Nt, C] = size(image1);
+0013 filtsize = 5;
+0014 Rs = zeros(Nx, Ny, C, C);
+0015 
+0016 <span class="comment">% Correlation matrix</span>
+0017 <span class="keyword">for</span> n1 = 1:C
+0018     <span class="keyword">for</span> n2 = 1:C
+0019         <span class="keyword">for</span> n3 = 1:Nt
+0020             Rs(:,:,n1,n2) = Rs(:,:,n1,n2) + filter2(ones(filtsize),<span class="keyword">...</span>
+0021                 image1(:,:,n3,n1).*conj(image1(:,:,n3,n2)),<span class="string">'same'</span>);
+0022         <span class="keyword">end</span>
+0023     <span class="keyword">end</span>
+0024 <span class="keyword">end</span>
+0025 
+0026 <span class="comment">% Get filter</span>
+0027 Rs = permute(Rs,[3,4,1,2]);
+0028 Rs = Rs(:,:,:);
+0029 coil_filter = zeros(size(Rs,3),C);
+0030 <span class="keyword">for</span> n4 = 1:size(Rs,3)
+0031     [U,~] = svd(squeeze(Rs(:,:,n4)));
+0032     coil_filter(n4,:) = U(:,1);
+0033 <span class="keyword">end</span>
+0034 
+0035 coil_filter = reshape(coil_filter, Nx, Ny, C);
+0036 
+0037 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

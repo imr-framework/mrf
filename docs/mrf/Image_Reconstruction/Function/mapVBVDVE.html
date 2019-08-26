@@ -1,0 +1,989 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mapVBVDVE</title>
+  <meta name="keywords" content="mapVBVDVE">
+  <meta name="description" content="This script reads Siemens raw .dat file from VB/VD MRI raw data.">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html Image_Reconstruction --><!-- menu.html Function -->
+<h1>mapVBVDVE
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>This script reads Siemens raw .dat file from VB/VD MRI raw data.</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [twix_obj version] = mapVBVDVE(filename,varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> This script reads Siemens raw .dat file from VB/VD MRI raw data.
+ Requires twix_map_obj.m
+
+ Created by Philipp Ehses (philipp.ehses@tuebingen.mpg.de)
+ INPUT
+        filename or simply meas. id, e.g. mapVBVD(122) (if file is in same path)
+        optional arguments (see below)
+
+ OUTPUT 
+     twix_obj:       structure with elements (if available):
+     .image:         image scan
+     .noise:         for noise scan
+     .phasecor:      phase correction scan
+     .phasestab:     phase stabilization scan
+     .phasestabRef0: phase stab. ref. (MDH_REFPHASESTABSCAN &amp;&amp; !MDH_PHASESTABSCAN)
+     .phasestabRef1: phase stab. ref. (MDH_REFPHASESTABSCAN &amp;&amp;  MDH_PHASESTABSCAN)
+     .refscan:       parallel imaging reference scan
+     .refscanPC:     phase correction scan for reference data
+     .refscanPS:     phase stabilization scan for reference data
+     .refscanPSRef0: phase stab. ref scan for reference data
+     .refscanPSRef1: phase stab. ref scan for reference data
+     .RTfeedback:    realtime feedback data
+     .vop:           vop rf data
+ 
+ HISTORY
+  Philipp Ehses 11.02.07, original version
+  [..]
+  Philipp Ehses 22.03.11, port to VD11
+  Felix Breuer  31.03.11, added support for noise &amp; ref scans, speed fixes
+  Philipp Ehses 19.08.11, complete reorganization of code, added
+                          siemens_data_obj class to improve readability
+  Wolf Blecher  15.05.12, readout of slice position parameters for VB Data sets
+  Wolf Blecher  11.06.12, added distinction between PATREF and PATREF PHASCOR
+  Philipp Ehses 02.08.12, again massive code reorganization. The new class
+                          twix_map_obj.m now stores the memory position of
+                          each dataset (coils are included - size: NCol*NCha)
+                          The actual data is not read until it is demanded
+                          by a &quot;data_obj()&quot; call. This makes it possible
+                          to selectively read in only parts of the data
+                          (e.g. to preserve memory).
+  Philipp Ehses 27.08.12, speed optimizations (avoiding of .-subsref calls)
+  07.09.12 Thanks to Stephen Yutzy for implementing support for raw data
+           correction (currently only supported for VB software version).
+  15.01.13 Thanks to Zhitao Li for proper handling of SYNCDATA.
+  Philipp Ehses 28.08.13, added support for VD13 multi-raid files
+  Michael Völker May-Aug 15 * Better error tolerance with incomplete files.
+                          * Swapped out parsing loop into a separate function
+                            without access to twix object (no thousands of subsref calls).
+                          * For parsing, use an as-minimalistic-as-possible loop
+                            to gather all mdhs in binary form. They are all stored
+                            in one array &quot;mdh_blob&quot;.
+                          * Translation of mdhs from binary to struct is vectorized 
+                            and almost instant. It's done in evalMDH(), replacing
+                            evalMDHvb() and evalMDHvd(), no more freads inside!
+                          * vectorized readMDH(), quasi-instant
+                          * When parsing, actually read the entire file without jumps.
+                            This is weirdly faster than fseek(), plus the entire file is
+                            kept in the file system cache, if possible. Next read
+                            is therefore faster, too.
+                          * =&gt; Parsing speed improved by factor 3...7 or so
+                          * Speed increase for reading data, esp. when slicing,
+                            os-removal or reflected lines. Also for random acquisitions.
+
+
+ The raw data can be obtained by calling e.g. twix_obj.image() or for
+ squeezed data twix_obj.image{''} (the '' are needed due to a limitation
+ of matlab's overloading capabilities).
+ Slicing is supported as well, e.g. twix_obj.image(:,:,1,:) will return
+ only the first line of the full data set (all later dimensions are
+ squeezed into one). Thus, slicing of the &quot;memory-mapped&quot; data objects
+ works exactly the same as regular matlab array slicing - with one
+ exception:
+ The keyword 'end' is not supported.
+ Overloading of the '()' and '{}' operators works by overloading matlab's
+ built-in 'subsref' function. Matlab calls subsref whenever the operators
+ '()', '{}', or '.' are called. In the latter case, the overloaded subsref
+ just calls the built-in subsref function since we don't want to change
+ the behaviour for '.'-calls. However, this has one minor consequence:
+ There's no way (afaik) to know whether the original call was terminated
+ with a semicolon. Thus, a call to e.g. twix_obj.image.NLin will produce
+ no output with or without semicolon termination. 'a = twix_obj.image.NLin'
+ will however produce the expected result.
+
+
+ Order of raw data:
+  1) Columns
+  2) Channels/Coils
+  3) Lines
+  4) Partitions
+  5) Slices
+  6) Averages
+  7) (Cardiac-) Phases
+  8) Contrasts/Echoes
+  9) Measurements
+ 10) Sets
+ 11) Segments
+ 12) Ida
+ 13) Idb
+ 14) Idc
+ 15) Idd
+ 16) Ide
+
+
+ Optional parameters/flags:
+
+ removeOS:          removes oversampling (factor 2) in read direction
+ doAverage:         performs average (resulting avg-dim has thus size 1)
+ ignoreSeg:         ignores segment mdh index (works basically the same as
+                    the average flag)
+ rampSampRegrid     optional on-the-fly regridding of ramp-sampled readout
+ doRawDataCorrect:  enables raw data correction if used in the acquisition
+                    (only works for VB atm)
+
+ These flags can also be set/unset later, e.g &quot;twix_obj.image.flagRemoveOS = 1&quot;
+
+
+ EXAMPLE
+   twix_obj = mapVBVD(measID);
+
+   % return all image-data:
+   image_data = twix_obj.image();
+   % return all image-data with all singular dimensions removed/squeezed:
+   image_data = twix_obj.image{''}; % '' necessary due to a matlab limitation
+   % return only data for line numbers 1 and 5; all dims higher than 4 are
+   % grouped into dim 5):
+   image_data = twix_obj.image(:,:,[1 5],:,:);
+   % return only data for coil channels 2 to 6; all dims higher than 4 are
+   % grouped into dim 5); but work with the squeezed data order
+   % =&gt; use '{}' instead of '()':
+   image_data = twix_obj.image{:,2:6,:,:,:};
+
+   So basically it works like regular matlab array slicing (but 'end' is
+   not supported; note that there are still a few bugs with array slicing).
+
+   % NEW: unsorted raw data (in acq. order):
+   image_data = twix_obj.image.unsorted(); % no slicing supported atm</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="read_twix_hdr.html" class="code" title="function [prot,rstraj] = read_twix_hdr(fid)">read_twix_hdr</a>	This function reads raw data header information from siemens MRI scanners</li><li><a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>	</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="dat2mat_nonCart.html" class="code" title="function [kspace_data]= dat2mat_nonCart()">dat2mat_nonCart</a>	This script reads in .dat raw data and convert it to kspace data.</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [mdh_blob, filePos, isEOF] = loop_mdh_read( fid, version )</a></li><li><a href="#_sub2" class="code">function [mdh,mask] = evalMDH( mdh_blob, version )</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [twix_obj version] = mapVBVDVE(filename,varargin)</a>
+0002 <span class="comment">% This script reads Siemens raw .dat file from VB/VD MRI raw data.</span>
+0003 <span class="comment">% Requires twix_map_obj.m</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Created by Philipp Ehses (philipp.ehses@tuebingen.mpg.de)</span>
+0006 <span class="comment">% INPUT</span>
+0007 <span class="comment">%        filename or simply meas. id, e.g. mapVBVD(122) (if file is in same path)</span>
+0008 <span class="comment">%        optional arguments (see below)</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% OUTPUT</span>
+0011 <span class="comment">%     twix_obj:       structure with elements (if available):</span>
+0012 <span class="comment">%     .image:         image scan</span>
+0013 <span class="comment">%     .noise:         for noise scan</span>
+0014 <span class="comment">%     .phasecor:      phase correction scan</span>
+0015 <span class="comment">%     .phasestab:     phase stabilization scan</span>
+0016 <span class="comment">%     .phasestabRef0: phase stab. ref. (MDH_REFPHASESTABSCAN &amp;&amp; !MDH_PHASESTABSCAN)</span>
+0017 <span class="comment">%     .phasestabRef1: phase stab. ref. (MDH_REFPHASESTABSCAN &amp;&amp;  MDH_PHASESTABSCAN)</span>
+0018 <span class="comment">%     .refscan:       parallel imaging reference scan</span>
+0019 <span class="comment">%     .refscanPC:     phase correction scan for reference data</span>
+0020 <span class="comment">%     .refscanPS:     phase stabilization scan for reference data</span>
+0021 <span class="comment">%     .refscanPSRef0: phase stab. ref scan for reference data</span>
+0022 <span class="comment">%     .refscanPSRef1: phase stab. ref scan for reference data</span>
+0023 <span class="comment">%     .RTfeedback:    realtime feedback data</span>
+0024 <span class="comment">%     .vop:           vop rf data</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% HISTORY</span>
+0027 <span class="comment">%  Philipp Ehses 11.02.07, original version</span>
+0028 <span class="comment">%  [..]</span>
+0029 <span class="comment">%  Philipp Ehses 22.03.11, port to VD11</span>
+0030 <span class="comment">%  Felix Breuer  31.03.11, added support for noise &amp; ref scans, speed fixes</span>
+0031 <span class="comment">%  Philipp Ehses 19.08.11, complete reorganization of code, added</span>
+0032 <span class="comment">%                          siemens_data_obj class to improve readability</span>
+0033 <span class="comment">%  Wolf Blecher  15.05.12, readout of slice position parameters for VB Data sets</span>
+0034 <span class="comment">%  Wolf Blecher  11.06.12, added distinction between PATREF and PATREF PHASCOR</span>
+0035 <span class="comment">%  Philipp Ehses 02.08.12, again massive code reorganization. The new class</span>
+0036 <span class="comment">%                          twix_map_obj.m now stores the memory position of</span>
+0037 <span class="comment">%                          each dataset (coils are included - size: NCol*NCha)</span>
+0038 <span class="comment">%                          The actual data is not read until it is demanded</span>
+0039 <span class="comment">%                          by a &quot;data_obj()&quot; call. This makes it possible</span>
+0040 <span class="comment">%                          to selectively read in only parts of the data</span>
+0041 <span class="comment">%                          (e.g. to preserve memory).</span>
+0042 <span class="comment">%  Philipp Ehses 27.08.12, speed optimizations (avoiding of .-subsref calls)</span>
+0043 <span class="comment">%  07.09.12 Thanks to Stephen Yutzy for implementing support for raw data</span>
+0044 <span class="comment">%           correction (currently only supported for VB software version).</span>
+0045 <span class="comment">%  15.01.13 Thanks to Zhitao Li for proper handling of SYNCDATA.</span>
+0046 <span class="comment">%  Philipp Ehses 28.08.13, added support for VD13 multi-raid files</span>
+0047 <span class="comment">%  Michael Völker May-Aug 15 * Better error tolerance with incomplete files.</span>
+0048 <span class="comment">%                          * Swapped out parsing loop into a separate function</span>
+0049 <span class="comment">%                            without access to twix object (no thousands of subsref calls).</span>
+0050 <span class="comment">%                          * For parsing, use an as-minimalistic-as-possible loop</span>
+0051 <span class="comment">%                            to gather all mdhs in binary form. They are all stored</span>
+0052 <span class="comment">%                            in one array &quot;mdh_blob&quot;.</span>
+0053 <span class="comment">%                          * Translation of mdhs from binary to struct is vectorized</span>
+0054 <span class="comment">%                            and almost instant. It's done in evalMDH(), replacing</span>
+0055 <span class="comment">%                            evalMDHvb() and evalMDHvd(), no more freads inside!</span>
+0056 <span class="comment">%                          * vectorized readMDH(), quasi-instant</span>
+0057 <span class="comment">%                          * When parsing, actually read the entire file without jumps.</span>
+0058 <span class="comment">%                            This is weirdly faster than fseek(), plus the entire file is</span>
+0059 <span class="comment">%                            kept in the file system cache, if possible. Next read</span>
+0060 <span class="comment">%                            is therefore faster, too.</span>
+0061 <span class="comment">%                          * =&gt; Parsing speed improved by factor 3...7 or so</span>
+0062 <span class="comment">%                          * Speed increase for reading data, esp. when slicing,</span>
+0063 <span class="comment">%                            os-removal or reflected lines. Also for random acquisitions.</span>
+0064 <span class="comment">%</span>
+0065 <span class="comment">%</span>
+0066 <span class="comment">% The raw data can be obtained by calling e.g. twix_obj.image() or for</span>
+0067 <span class="comment">% squeezed data twix_obj.image{''} (the '' are needed due to a limitation</span>
+0068 <span class="comment">% of matlab's overloading capabilities).</span>
+0069 <span class="comment">% Slicing is supported as well, e.g. twix_obj.image(:,:,1,:) will return</span>
+0070 <span class="comment">% only the first line of the full data set (all later dimensions are</span>
+0071 <span class="comment">% squeezed into one). Thus, slicing of the &quot;memory-mapped&quot; data objects</span>
+0072 <span class="comment">% works exactly the same as regular matlab array slicing - with one</span>
+0073 <span class="comment">% exception:</span>
+0074 <span class="comment">% The keyword 'end' is not supported.</span>
+0075 <span class="comment">% Overloading of the '()' and '{}' operators works by overloading matlab's</span>
+0076 <span class="comment">% built-in 'subsref' function. Matlab calls subsref whenever the operators</span>
+0077 <span class="comment">% '()', '{}', or '.' are called. In the latter case, the overloaded subsref</span>
+0078 <span class="comment">% just calls the built-in subsref function since we don't want to change</span>
+0079 <span class="comment">% the behaviour for '.'-calls. However, this has one minor consequence:</span>
+0080 <span class="comment">% There's no way (afaik) to know whether the original call was terminated</span>
+0081 <span class="comment">% with a semicolon. Thus, a call to e.g. twix_obj.image.NLin will produce</span>
+0082 <span class="comment">% no output with or without semicolon termination. 'a = twix_obj.image.NLin'</span>
+0083 <span class="comment">% will however produce the expected result.</span>
+0084 <span class="comment">%</span>
+0085 <span class="comment">%</span>
+0086 <span class="comment">% Order of raw data:</span>
+0087 <span class="comment">%  1) Columns</span>
+0088 <span class="comment">%  2) Channels/Coils</span>
+0089 <span class="comment">%  3) Lines</span>
+0090 <span class="comment">%  4) Partitions</span>
+0091 <span class="comment">%  5) Slices</span>
+0092 <span class="comment">%  6) Averages</span>
+0093 <span class="comment">%  7) (Cardiac-) Phases</span>
+0094 <span class="comment">%  8) Contrasts/Echoes</span>
+0095 <span class="comment">%  9) Measurements</span>
+0096 <span class="comment">% 10) Sets</span>
+0097 <span class="comment">% 11) Segments</span>
+0098 <span class="comment">% 12) Ida</span>
+0099 <span class="comment">% 13) Idb</span>
+0100 <span class="comment">% 14) Idc</span>
+0101 <span class="comment">% 15) Idd</span>
+0102 <span class="comment">% 16) Ide</span>
+0103 <span class="comment">%</span>
+0104 <span class="comment">%</span>
+0105 <span class="comment">% Optional parameters/flags:</span>
+0106 <span class="comment">%</span>
+0107 <span class="comment">% removeOS:          removes oversampling (factor 2) in read direction</span>
+0108 <span class="comment">% doAverage:         performs average (resulting avg-dim has thus size 1)</span>
+0109 <span class="comment">% ignoreSeg:         ignores segment mdh index (works basically the same as</span>
+0110 <span class="comment">%                    the average flag)</span>
+0111 <span class="comment">% rampSampRegrid     optional on-the-fly regridding of ramp-sampled readout</span>
+0112 <span class="comment">% doRawDataCorrect:  enables raw data correction if used in the acquisition</span>
+0113 <span class="comment">%                    (only works for VB atm)</span>
+0114 <span class="comment">%</span>
+0115 <span class="comment">% These flags can also be set/unset later, e.g &quot;twix_obj.image.flagRemoveOS = 1&quot;</span>
+0116 <span class="comment">%</span>
+0117 <span class="comment">%</span>
+0118 <span class="comment">% EXAMPLE</span>
+0119 <span class="comment">%   twix_obj = mapVBVD(measID);</span>
+0120 <span class="comment">%</span>
+0121 <span class="comment">%   % return all image-data:</span>
+0122 <span class="comment">%   image_data = twix_obj.image();</span>
+0123 <span class="comment">%   % return all image-data with all singular dimensions removed/squeezed:</span>
+0124 <span class="comment">%   image_data = twix_obj.image{''}; % '' necessary due to a matlab limitation</span>
+0125 <span class="comment">%   % return only data for line numbers 1 and 5; all dims higher than 4 are</span>
+0126 <span class="comment">%   % grouped into dim 5):</span>
+0127 <span class="comment">%   image_data = twix_obj.image(:,:,[1 5],:,:);</span>
+0128 <span class="comment">%   % return only data for coil channels 2 to 6; all dims higher than 4 are</span>
+0129 <span class="comment">%   % grouped into dim 5); but work with the squeezed data order</span>
+0130 <span class="comment">%   % =&gt; use '{}' instead of '()':</span>
+0131 <span class="comment">%   image_data = twix_obj.image{:,2:6,:,:,:};</span>
+0132 <span class="comment">%</span>
+0133 <span class="comment">%   So basically it works like regular matlab array slicing (but 'end' is</span>
+0134 <span class="comment">%   not supported; note that there are still a few bugs with array slicing).</span>
+0135 <span class="comment">%</span>
+0136 <span class="comment">%   % NEW: unsorted raw data (in acq. order):</span>
+0137 <span class="comment">%   image_data = twix_obj.image.unsorted(); % no slicing supported atm</span>
+0138 <span class="comment">%</span>
+0139 
+0140 <span class="comment">% Suppress silly editor warnings in the entire file, barking about</span>
+0141 <span class="comment">% unused variables:</span>
+0142 <span class="comment">%#ok&lt;*NASGU&gt;</span>
+0143 
+0144 <span class="keyword">if</span> ~exist(<span class="string">'filename'</span>,<span class="string">'var'</span>) || isempty(filename)
+0145     info = <span class="string">'Please select binary file to read'</span>;
+0146     [fname,pathname]=uigetfile(<span class="string">'*.dat'</span>,info);
+0147     <span class="keyword">if</span> isempty(pathname)
+0148         <span class="keyword">return</span>
+0149     <span class="keyword">end</span>
+0150     filename=[pathname fname];
+0151 <span class="keyword">else</span>
+0152     <span class="keyword">if</span> ischar(filename)
+0153         <span class="comment">% assume that complete path is given</span>
+0154         <span class="keyword">if</span>  ~strcmpi(filename(end-3:end),<span class="string">'.dat'</span>);
+0155             filename=[filename <span class="string">'.dat'</span>];   <span class="comment">%% adds filetype ending to file</span>
+0156         <span class="keyword">end</span>
+0157     <span class="keyword">else</span>
+0158         <span class="comment">% filename not a string, so assume that it is the MeasID</span>
+0159         measID   = filename;
+0160         filelist = dir(<span class="string">'*.dat'</span>);
+0161         filesfound = 0;
+0162         <span class="keyword">for</span> k=1:numel(filelist)
+0163             <span class="keyword">if</span> regexp(filelist(k).name,[<span class="string">'^meas_MID0*'</span> num2str(measID) <span class="string">'.*\.dat'</span>])==1
+0164                 <span class="keyword">if</span> filesfound == 0
+0165                     filename = filelist(k).name;
+0166                 <span class="keyword">end</span>
+0167                 filesfound = filesfound+1;
+0168             <span class="keyword">end</span>
+0169         <span class="keyword">end</span>
+0170         <span class="keyword">if</span> filesfound == 0
+0171             error([<span class="string">'File with meas. id '</span> num2str(measID) <span class="string">' not found.'</span>]);
+0172         <span class="keyword">elseif</span> filesfound &gt; 1
+0173             disp([<span class="string">'Multiple files with meas. id '</span> num2str(measID) <span class="string">' found. Choosing first occurence.'</span>]);
+0174         <span class="keyword">end</span>
+0175     <span class="keyword">end</span>
+0176 <span class="keyword">end</span>
+0177 
+0178 <span class="comment">% add absolute path, when no path is given</span>
+0179 [pathstr, name, ext] = fileparts(filename);
+0180 
+0181 <span class="keyword">if</span> isempty(pathstr)
+0182     pathstr  = pwd;
+0183     filename = fullfile(pathstr, [name ext]);
+0184 <span class="keyword">end</span>
+0185 
+0186 <span class="comment">%%%%% Parse varargin %%%%%</span>
+0187 arg.bReadImaScan    = true;
+0188 arg.bReadNoiseScan  = true;
+0189 arg.bReadPCScan     = true;
+0190 arg.bReadRefScan    = true;
+0191 arg.bReadRefPCScan  = true;
+0192 arg.bReadRTfeedback = true;
+0193 arg.bReadPhaseStab  = true;
+0194 arg.bReadHeader     = true;
+0195 
+0196 k=1;
+0197 <span class="keyword">while</span> k &lt;= numel(varargin)
+0198 
+0199     <span class="keyword">if</span> ~ischar(varargin{k})
+0200         error(<span class="string">'string expected'</span>);
+0201     <span class="keyword">end</span>
+0202 
+0203     <span class="keyword">switch</span> lower(varargin{k})
+0204         <span class="keyword">case</span> {<span class="string">'readheader'</span>,<span class="string">'readhdr'</span>,<span class="string">'header'</span>,<span class="string">'hdr'</span>}
+0205             <span class="keyword">if</span> numel(varargin) &gt; k &amp;&amp; ~ischar(varargin{k+1})
+0206                 arg.bReadHeader = logical(varargin{k+1});
+0207                 k = k+2;
+0208             <span class="keyword">else</span>
+0209                 arg.bReadHeader = true;
+0210                 k = k+1;
+0211             <span class="keyword">end</span>
+0212         <span class="keyword">case</span> {<span class="string">'removeos'</span>,<span class="string">'rmos'</span>}
+0213             <span class="keyword">if</span> numel(varargin) &gt; k &amp;&amp; ~ischar(varargin{k+1})
+0214                 arg.removeOS = logical(varargin{k+1});
+0215                 k = k+2;
+0216             <span class="keyword">else</span>
+0217                 arg.removeOS = true;
+0218                 k = k+1;
+0219             <span class="keyword">end</span>
+0220         <span class="keyword">case</span> {<span class="string">'doaverage'</span>,<span class="string">'doave'</span>,<span class="string">'ave'</span>,<span class="string">'average'</span>}
+0221             <span class="keyword">if</span> numel(varargin) &gt; k &amp;&amp; ~ischar(varargin{k+1})
+0222                 arg.doAverage = logical(varargin{k+1});
+0223                 k = k+2;
+0224             <span class="keyword">else</span>
+0225                 arg.doAverage = true;
+0226                 k = k+1;
+0227             <span class="keyword">end</span>
+0228         <span class="keyword">case</span> {<span class="string">'averagereps'</span>,<span class="string">'averagerepetitions'</span>}
+0229             <span class="keyword">if</span> numel(varargin) &gt; k &amp;&amp; ~ischar(varargin{k+1})
+0230                 arg.averageReps = logical(varargin{k+1});
+0231                 k = k+2;
+0232             <span class="keyword">else</span>
+0233                 arg.averageReps = true;
+0234                 k = k+1;
+0235             <span class="keyword">end</span>
+0236         <span class="keyword">case</span> {<span class="string">'averagesets'</span>}
+0237             <span class="keyword">if</span> numel(varargin) &gt; k &amp;&amp; ~ischar(varargin{k+1})
+0238                 arg.averageSets = logical(varargin{k+1});
+0239                 k = k+2;
+0240             <span class="keyword">else</span>
+0241                 arg.averageSets = true;
+0242                 k = k+1;
+0243             <span class="keyword">end</span>
+0244         <span class="keyword">case</span> {<span class="string">'ignseg'</span>,<span class="string">'ignsegments'</span>,<span class="string">'ignoreseg'</span>,<span class="string">'ignoresegments'</span>}
+0245             <span class="keyword">if</span> numel(varargin) &gt; k &amp;&amp; ~ischar(varargin{k+1})
+0246                 arg.ignoreSeg = logical(varargin{k+1});
+0247                 k = k+2;
+0248             <span class="keyword">else</span>
+0249                 arg.ignoreSeg = true;
+0250                 k = k+1;
+0251             <span class="keyword">end</span>
+0252         <span class="keyword">case</span> {<span class="string">'rampsampregrid'</span>,<span class="string">'regrid'</span>}
+0253             <span class="keyword">if</span> numel(varargin) &gt; k &amp;&amp; ~ischar(varargin{k+1})
+0254                 arg.rampSampRegrid = logical(varargin{k+1});
+0255                 k = k+2;
+0256             <span class="keyword">else</span>
+0257                 arg.rampSampRegrid = true;
+0258                 k = k+1;
+0259             <span class="keyword">end</span>
+0260         <span class="keyword">case</span> {<span class="string">'rawdatacorrect'</span>,<span class="string">'dorawdatacorrect'</span>}
+0261             <span class="keyword">if</span> numel(varargin) &gt; k &amp;&amp; ~ischar(varargin{k+1})
+0262                 arg.doRawDataCorrect = logical(varargin{k+1});
+0263                 k = k+2;
+0264             <span class="keyword">else</span>
+0265                 arg.doRawDataCorrect = true;
+0266                 k = k+1;
+0267             <span class="keyword">end</span>
+0268         <span class="keyword">otherwise</span>
+0269             error(<span class="string">'Argument not recognized.'</span>);
+0270     <span class="keyword">end</span>
+0271 <span class="keyword">end</span>
+0272 clear varargin
+0273 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+0274 
+0275 tic;
+0276 fid = fopen(filename,<span class="string">'r'</span>,<span class="string">'l'</span>,<span class="string">'US-ASCII'</span>);
+0277 
+0278 <span class="comment">% start of actual measurement data (sans header)</span>
+0279 fseek(fid,0,<span class="string">'bof'</span>);
+0280 
+0281 firstInt  = fread(fid,1,<span class="string">'uint32'</span>);
+0282 secondInt = fread(fid,1,<span class="string">'uint32'</span>);
+0283 
+0284 <span class="comment">% lazy software version check (VB or VD?)</span>
+0285 <span class="keyword">if</span> and(firstInt &lt; 10000, secondInt &lt;= 64)
+0286     version = <span class="string">'vd'</span>;
+0287     disp(<span class="string">'Software version: VD (!?)'</span>);
+0288 
+0289     <span class="comment">% number of different scans in file stored in 2nd in</span>
+0290     NScans = secondInt;
+0291     measID = fread(fid,1,<span class="string">'uint32'</span>);
+0292     fileID = fread(fid,1,<span class="string">'uint32'</span>);
+0293     <span class="comment">% measOffset: points to beginning of header, usually at 10240 bytes</span>
+0294     measOffset = fread(fid,1,<span class="string">'uint64'</span>);
+0295     measLength = fread(fid,1,<span class="string">'uint64'</span>);
+0296     fseek(fid,measOffset,<span class="string">'bof'</span>);
+0297     hdrLength  = fread(fid,1,<span class="string">'uint32'</span>);
+0298 
+0299 <span class="keyword">else</span>
+0300     <span class="comment">% in VB versions, the first 4 bytes indicate the beginning of the</span>
+0301     <span class="comment">% raw data part of the file</span>
+0302     version  = <span class="string">'vb'</span>;
+0303     disp(<span class="string">'Software version: VB (!?)'</span>);
+0304     measOffset = 0;
+0305     hdrLength  = firstInt;
+0306     NScans     = 1; <span class="comment">% VB does not support multiple scans in one file</span>
+0307 <span class="keyword">end</span>
+0308 datStart = measOffset + hdrLength;
+0309 
+0310 <span class="comment">%SRY read data correction factors</span>
+0311 <span class="comment">% do this for all VB datasets, so that the factors are available later</span>
+0312 <span class="comment">% in the image_obj if the user chooses to set the correction flag</span>
+0313 <span class="keyword">if</span> (strcmp(version, <span class="string">'vb'</span>)) <span class="comment">% not implemented/tested for vd, yet</span>
+0314     frewind(fid);
+0315     <span class="keyword">while</span> ( (ftell(fid) &lt; datStart) &amp;&amp; ~exist(<span class="string">'rawfactors'</span>, <span class="string">'var'</span>))
+0316         line = fgetl(fid);
+0317         <span class="comment">%find the section of the protocol</span>
+0318         <span class="comment">%note: the factors are also available in &lt;ParamArray.&quot;CoilSelects&quot;&gt;</span>
+0319         <span class="comment">%along with element name and FFT scale, but the parsing is</span>
+0320         <span class="comment">%significantly more difficult</span>
+0321         <span class="keyword">if</span> (~isempty(strfind(line, <span class="string">'&lt;ParamArray.&quot;axRawDataCorrectionFactor&quot;&gt;'</span>)))
+0322             <span class="keyword">while</span> (ftell(fid) &lt; datStart)
+0323                 line = fgetl(fid);
+0324                 <span class="comment">%find the line with correction factors</span>
+0325                 <span class="comment">%the factors are on the first line that begins with this</span>
+0326                 <span class="comment">%pattern</span>
+0327                 <span class="keyword">if</span> (~isempty(strfind(line, <span class="string">'{ {  { '</span>)))
+0328                     line = strrep(line, <span class="string">'}  { } '</span>, <span class="string">'0.0'</span>);
+0329                     line = strrep(line, <span class="string">'{'</span>, <span class="string">''</span>);
+0330                     line = strrep(line, <span class="string">'}'</span>, <span class="string">''</span>);
+0331                     rawfactors = textscan(line, <span class="string">'%f'</span>);
+0332                     rawfactors = rawfactors{1}; <span class="comment">%textscan returns a 1x1 cell array</span>
+0333                     <span class="comment">% this does not work in this location because the MDHs</span>
+0334                     <span class="comment">% have not been parsed yet</span>
+0335                     <span class="comment">%                    if (length(rawfactors) ~= 2*max(image_obj.NCha))</span>
+0336                     <span class="comment">%                       error('Number of raw factors (%f) does not equal channel count (%d)', length(rawfactors)/2, image_obj.NCha);</span>
+0337                     <span class="comment">%                    end;</span>
+0338                     <span class="keyword">if</span> (mod(length(rawfactors),2) ~= 0)
+0339                         error(<span class="string">'Error reading rawfactors'</span>);
+0340                     <span class="keyword">end</span>;
+0341                     <span class="comment">%note the transpose, this makes the vector</span>
+0342                     <span class="comment">%multiplication during the read easier</span>
+0343                     arg.rawDataCorrectionFactors = rawfactors(1:2:end).' + 1i*rawfactors(2:2:end).';
+0344                     <span class="keyword">break</span>;
+0345                 <span class="keyword">end</span>
+0346             <span class="keyword">end</span>
+0347         <span class="keyword">end</span>
+0348     <span class="keyword">end</span>
+0349     disp(<span class="string">'Read raw data correction factors'</span>);
+0350 <span class="keyword">end</span>
+0351 
+0352 <span class="comment">% data will be read in two steps (two while loops):</span>
+0353 <span class="comment">%   1) reading all MDHs to find maximum line no., partition no.,... for</span>
+0354 <span class="comment">%      ima, ref,... scan</span>
+0355 <span class="comment">%   2) reading the data</span>
+0356 tic;
+0357 cPos            = measOffset;
+0358 twix_obj        = cell(1,NScans);
+0359 
+0360 <span class="keyword">for</span> s=1:NScans
+0361     fseek(fid,cPos,<span class="string">'bof'</span>);
+0362     hdr_len = fread(fid, 1,<span class="string">'uint32'</span>);
+0363 
+0364     <span class="comment">% read header and calculate regridding (optional)</span>
+0365     rstraj = [];
+0366     <span class="keyword">if</span> arg.bReadHeader
+0367         [twix_obj{s}.hdr,rstraj] = <a href="read_twix_hdr.html" class="code" title="function [prot,rstraj] = read_twix_hdr(fid)">read_twix_hdr</a>(fid);
+0368     <span class="keyword">end</span>
+0369     
+0370     <span class="comment">% bbm added for conveniently reading the header info of the real scan.</span>
+0371     twix_obj{s}.ScanFidStartPos=cPos;
+0372 
+0373     <span class="comment">% declare data objects:</span>
+0374     twix_obj{s}.image         = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'image'</span>,filename,version,rstraj);
+0375     twix_obj{s}.noise         = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'noise'</span>,filename,version);
+0376     twix_obj{s}.phasecor      = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'phasecor'</span>,filename,version,rstraj);
+0377     twix_obj{s}.phasestab     = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'phasestab'</span>,filename,version,rstraj);
+0378     twix_obj{s}.phasestabRef0 = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'phasestab_ref0'</span>,filename,version,rstraj);
+0379     twix_obj{s}.phasestabRef1 = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'phasestab_ref1'</span>,filename,version,rstraj);
+0380     twix_obj{s}.refscan       = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'refscan'</span>,filename,version,rstraj);
+0381     twix_obj{s}.refscanPC     = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'refscan_phasecor'</span>,filename,version,rstraj);
+0382     twix_obj{s}.refscanPS     = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'refscan_phasestab'</span>,filename,version,rstraj);
+0383     twix_obj{s}.refscanPSRef0 = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'refscan_phasestab_ref0'</span>,filename,version,rstraj);
+0384     twix_obj{s}.refscanPSRef1 = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'refscan_phasestab_ref1'</span>,filename,version,rstraj);
+0385     twix_obj{s}.RTfeedback    = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'rtfeedback'</span>,filename,version,rstraj);
+0386     twix_obj{s}.vop           = <a href="twix_map_objVE.html" class="code" title="">twix_map_objVE</a>(arg,<span class="string">'vop'</span>,filename,version); <span class="comment">% tx-array rf pulses</span>
+0387 
+0388     <span class="comment">% jump to first mdh</span>
+0389     cPos = cPos + hdr_len;
+0390     fseek( fid, cPos, <span class="string">'bof'</span> );
+0391 
+0392     <span class="comment">% find all mdhs and save them in binary form, first:</span>
+0393     fprintf(<span class="string">'Scan %d/%d, read all mdhs:\n'</span>, s, NScans )
+0394 
+0395     [mdh_blob, filePos, isEOF] = <a href="#_sub1" class="code" title="subfunction [mdh_blob, filePos, isEOF] = loop_mdh_read( fid, version )">loop_mdh_read</a>( fid, version );  <span class="comment">% uint8; size: [ byteMDH  Nmeas ]</span>
+0396 
+0397     cPos = filePos( end );
+0398     filePos( end ) = [];
+0399 
+0400     fprintf(<span class="string">'          parse mdhs... '</span>)
+0401     t0 = tic;
+0402 
+0403     <span class="comment">% get mdhs and masks for each scan, no matter if noise, image, RTfeedback etc:</span>
+0404     [mdh, mask] = <a href="#_sub2" class="code" title="subfunction [mdh,mask] = evalMDH( mdh_blob, version )">evalMDH</a>( mdh_blob, version ); <span class="comment">% this is quasi-instant (&lt; 1s) :-)</span>
+0405     clear mdh_blob
+0406 
+0407     <span class="comment">% Assign mdhs to their respective scans and parse it in the correct twix objects.</span>
+0408     <span class="comment">%</span>
+0409     <span class="keyword">if</span> arg.bReadImaScan
+0410         clear tmpMdh
+0411         isCurrScan = logical( mask.MDH_IMASCAN );
+0412         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0413             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0414         <span class="keyword">end</span>
+0415         twix_obj{s}.image.readMDH( tmpMdh, filePos(isCurrScan) );
+0416     <span class="keyword">end</span>
+0417     <span class="keyword">if</span> arg.bReadNoiseScan
+0418         clear tmpMdh
+0419         isCurrScan = logical( mask.MDH_NOISEADJSCAN );
+0420         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0421             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0422         <span class="keyword">end</span>
+0423         twix_obj{s}.noise.readMDH( tmpMdh, filePos(isCurrScan) );
+0424     <span class="keyword">end</span>
+0425     <span class="keyword">if</span> arg.bReadRefScan
+0426         clear tmpMdh
+0427         isCurrScan =    ( mask.MDH_PATREFSCAN | mask.MDH_PATREFANDIMASCAN )<span class="keyword">...</span>
+0428                      &amp; ~( mask.MDH_PHASCOR | mask.MDH_PHASESTABSCAN | <span class="keyword">...</span>
+0429                           mask.MDH_REFPHASESTABSCAN | <span class="keyword">...</span>
+0430                           mask.MDH_RTFEEDBACK | mask.MDH_HPFEEDBACK);
+0431         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0432             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0433         <span class="keyword">end</span>
+0434         twix_obj{s}.refscan.readMDH( tmpMdh, filePos(isCurrScan) );
+0435     <span class="keyword">end</span>
+0436     <span class="keyword">if</span> arg.bReadRTfeedback
+0437         clear tmpMdh
+0438         isCurrScan = ( mask.MDH_RTFEEDBACK | mask.MDH_HPFEEDBACK ) &amp; ~mask.MDH_VOP;
+0439         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0440             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0441         <span class="keyword">end</span>
+0442         twix_obj{s}.RTfeedback.readMDH( tmpMdh, filePos(isCurrScan) );
+0443 
+0444         clear tmpMdh
+0445         isCurrScan = ( mask.MDH_RTFEEDBACK &amp; mask.MDH_VOP );
+0446         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0447             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0448         <span class="keyword">end</span>
+0449         twix_obj{s}.vop.readMDH( tmpMdh, filePos(isCurrScan) );
+0450     <span class="keyword">end</span>
+0451     <span class="keyword">if</span> arg.bReadPCScan
+0452         <span class="comment">% logic really correct?</span>
+0453         
+0454         clear tmpMdh
+0455         isCurrScan = mask.MDH_PHASCOR &amp; ( ~mask.MDH_PATREFSCAN | mask.MDH_PATREFANDIMASCAN );
+0456         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0457             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0458         <span class="keyword">end</span>
+0459         twix_obj{s}.phasecor.readMDH( tmpMdh, filePos(isCurrScan) );
+0460         
+0461         clear tmpMdh
+0462         isCurrScan = mask.MDH_PHASCOR &amp; (  mask.MDH_PATREFSCAN | mask.MDH_PATREFANDIMASCAN );
+0463         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0464             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0465         <span class="keyword">end</span>
+0466         twix_obj{s}.refscanPC.readMDH( tmpMdh, filePos(isCurrScan) );
+0467     <span class="keyword">end</span>
+0468     <span class="keyword">if</span> arg.bReadPhaseStab
+0469         clear tmpMdh
+0470         isCurrScan =    ( mask.MDH_PHASESTABSCAN &amp; ~mask.MDH_REFPHASESTABSCAN ) <span class="keyword">...</span>
+0471                       &amp; (~mask.MDH_PATREFSCAN    |  mask.MDH_PATREFANDIMASCAN );
+0472         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0473             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0474         <span class="keyword">end</span>
+0475         twix_obj{s}.phasestab.readMDH( tmpMdh, filePos(isCurrScan) );
+0476 
+0477         clear tmpMdh
+0478         isCurrScan =    ( mask.MDH_PHASESTABSCAN &amp; ~mask.MDH_REFPHASESTABSCAN ) <span class="keyword">...</span>
+0479                       &amp; ( mask.MDH_PATREFSCAN    |  mask.MDH_PATREFANDIMASCAN );
+0480         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0481             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0482         <span class="keyword">end</span>
+0483         twix_obj{s}.refscanPS.readMDH( tmpMdh, filePos(isCurrScan) );
+0484 
+0485         clear tmpMdh
+0486         isCurrScan =    ( mask.MDH_REFPHASESTABSCAN &amp; ~mask.MDH_PHASESTABSCAN ) <span class="keyword">...</span>
+0487                       &amp; (~mask.MDH_PATREFSCAN   |   mask.MDH_PATREFANDIMASCAN );
+0488         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0489             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0490         <span class="keyword">end</span>
+0491         twix_obj{s}.phasestabRef0.readMDH( tmpMdh, filePos(isCurrScan) );
+0492 
+0493         clear tmpMdh
+0494         isCurrScan =    ( mask.MDH_REFPHASESTABSCAN &amp; ~mask.MDH_PHASESTABSCAN ) <span class="keyword">...</span>
+0495                       &amp; ( mask.MDH_PATREFSCAN   |   mask.MDH_PATREFANDIMASCAN );
+0496         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0497             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0498         <span class="keyword">end</span>
+0499         twix_obj{s}.refscanPSRef0.readMDH( tmpMdh, filePos(isCurrScan) );
+0500         
+0501         clear tmpMdh
+0502         isCurrScan =    ( mask.MDH_REFPHASESTABSCAN &amp; mask.MDH_PHASESTABSCAN ) <span class="keyword">...</span>
+0503                       &amp; (~mask.MDH_PATREFSCAN   |   mask.MDH_PATREFANDIMASCAN );
+0504         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0505             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0506         <span class="keyword">end</span>
+0507         twix_obj{s}.phasestabRef1.readMDH( tmpMdh, filePos(isCurrScan) );
+0508 
+0509         clear tmpMdh
+0510         isCurrScan =    ( mask.MDH_REFPHASESTABSCAN &amp; mask.MDH_PHASESTABSCAN ) <span class="keyword">...</span>
+0511                       &amp; ( mask.MDH_PATREFSCAN   |   mask.MDH_PATREFANDIMASCAN );
+0512         <span class="keyword">for</span> f = fieldnames( mdh ).'
+0513             tmpMdh.(f{1}) = mdh.(f{1})( isCurrScan, : );
+0514         <span class="keyword">end</span>
+0515         twix_obj{s}.refscanPSRef1.readMDH( tmpMdh, filePos(isCurrScan) );
+0516     <span class="keyword">end</span>
+0517     clear  mdh  tmpMdh  filePos  isCurrScan
+0518 
+0519     <span class="keyword">for</span> scan = { <span class="string">'image'</span>, <span class="string">'noise'</span>, <span class="string">'phasecor'</span>, <span class="string">'phasestab'</span>, <span class="keyword">...</span>
+0520                  <span class="string">'phasestabRef0'</span>, <span class="string">'phasestabRef1'</span>, <span class="string">'refscan'</span>, <span class="keyword">...</span>
+0521                  <span class="string">'refscanPC'</span>, <span class="string">'refscanPS'</span>, <span class="string">'refscanPSRef0'</span>, <span class="keyword">...</span>
+0522                  <span class="string">'refscanPSRef1'</span>, <span class="string">'RTfeedback'</span>, <span class="string">'vop'</span> }
+0523         f = scan{1};
+0524 
+0525         <span class="comment">% remove unused fields</span>
+0526         <span class="keyword">if</span> twix_obj{s}.(f).NAcq == 0
+0527             twix_obj{s} = rmfield(twix_obj{s}, f );
+0528         <span class="keyword">else</span>
+0529             <span class="keyword">if</span> isEOF
+0530                 <span class="comment">% recover from read error</span>
+0531                 twix_obj{s}.(f).tryAndFixLastMdh();
+0532             <span class="keyword">else</span>
+0533                 twix_obj{s}.(f).clean();
+0534             <span class="keyword">end</span>
+0535         <span class="keyword">end</span>
+0536     <span class="keyword">end</span>
+0537     fprintf(<span class="string">'done. (%g seconds)\n'</span>, toc(t0) )
+0538 
+0539 <span class="keyword">end</span> <span class="comment">% NScans loop</span>
+0540 
+0541 <span class="keyword">if</span> NScans == 1
+0542     twix_obj = twix_obj{1};
+0543 <span class="keyword">end</span>
+0544 
+0545 <span class="keyword">end</span> <span class="comment">% of mapVBVD()</span>
+0546 
+0547 
+0548 
+0549 
+0550 <a name="_sub1" href="#_subfunctions" class="code">function [mdh_blob, filePos, isEOF] = loop_mdh_read( fid, version )</a>
+0551 <span class="comment">% Goal of this function is to gather all mdhs in the dat file and store them</span>
+0552 <span class="comment">% in binary form, first. This enables us to evaluate and parse the stuff in</span>
+0553 <span class="comment">% a MATLAB-friendly (vectorized) way. We also yield a clear separation between</span>
+0554 <span class="comment">% a lengthy loop and other expressions that are evaluated very few times.</span>
+0555 <span class="comment">%</span>
+0556 <span class="comment">% The main challenge is that we never know a priori, where the next mdh is</span>
+0557 <span class="comment">% and how many there are. So we have to actually evaluate some mdh fields to</span>
+0558 <span class="comment">% find the next one.</span>
+0559 <span class="comment">%</span>
+0560 <span class="comment">% All slow things of the parsing step are found in the while loop.</span>
+0561 <span class="comment">% =&gt; It is the (only) place where micro-optimizations are worthwhile.</span>
+0562 <span class="comment">%</span>
+0563 <span class="comment">% The current state is that we are close to sequential disk I/O times.</span>
+0564 <span class="comment">% More fancy improvements may be possible by using workers through parfeval()</span>
+0565 <span class="comment">% or threads using a java class (probably faster + no toolbox):</span>
+0566 <span class="comment">% http://undocumentedmatlab.com/blog/explicit-multi-threading-in-matlab-part1</span>
+0567 
+0568     <span class="keyword">switch</span> version
+0569         <span class="keyword">case</span> <span class="string">'vb'</span>
+0570             isVD    = false;
+0571             byteMDH = 128;
+0572         <span class="keyword">case</span> <span class="string">'vd'</span>
+0573             isVD    = true;
+0574             byteMDH = 184;
+0575             szScanHeader    = 192; <span class="comment">% [bytes]</span>
+0576             szChannelHeader =  32; <span class="comment">% [bytes]</span>
+0577         <span class="keyword">otherwise</span>
+0578             <span class="comment">% arbitrary assumptions:</span>
+0579             isVD    = false;
+0580             byteMDH = 128;
+0581             warning( [mfilename() <span class="string">':UnknownVer'</span>], <span class="string">'Software version &quot;%s&quot; is not supported.'</span>, version );
+0582     <span class="keyword">end</span>
+0583 
+0584     cPos            = ftell(fid);
+0585     n_acq           = 0;
+0586     allocSize       = 4096;
+0587     ulDMALength     = byteMDH;
+0588     isEOF           = false;
+0589     percentFinished = 0;
+0590     progress_str    = <span class="string">''</span>;
+0591     prevLength      = numel( progress_str );
+0592 
+0593     mdh_blob = zeros( byteMDH, 0, <span class="string">'uint8'</span> );
+0594     szBlob   = size( mdh_blob, 2 );
+0595     filePos  = zeros(0, 1, <span class="string">'like'</span>, cPos);  <span class="comment">% avoid bug in Matlab 2013b: https://scivision.co/matlab-fseek-bug-with-uint64-offset/</span>
+0596 
+0597     <span class="comment">% get file size</span>
+0598     fseek(fid,0,<span class="string">'eof'</span>);
+0599     fileSize = ftell(fid);
+0600     fseek(fid,cPos,<span class="string">'bof'</span>);
+0601 
+0602     <span class="comment">% ======================================</span>
+0603     <span class="comment">%   constants and conditional variables</span>
+0604     <span class="comment">% ======================================</span>
+0605         bit_0 = uint8(2^0);
+0606         bit_5 = uint8(2^5);
+0607         mdhStart = 1-byteMDH;
+0608         
+0609         u8_000 = zeros( 3, 1, <span class="string">'uint8'</span>); <span class="comment">% for comparison with data_u8(1:3)</span>
+0610 
+0611         <span class="comment">% 20 fill bytes in VD (21:40)</span>
+0612         evIdx   = uint8(    21  + 20*isVD); <span class="comment">% 1st byte of evalInfoMask</span>
+0613         dmaIdx  = uint8((29:32) + 20*isVD); <span class="comment">% to correct DMA length using NCol and NCha</span>
+0614         <span class="keyword">if</span> isVD
+0615             dmaOff  = szScanHeader;
+0616             dmaSkip = szChannelHeader;
+0617         <span class="keyword">else</span>
+0618             dmaOff  = 0;
+0619             dmaSkip = byteMDH;
+0620         <span class="keyword">end</span>
+0621     <span class="comment">% ======================================</span>
+0622 
+0623     t0 = tic;
+0624     <span class="keyword">while</span> true
+0625         <span class="comment">% Read mdh as binary (uint8) and evaluate as little as possible to know...</span>
+0626         <span class="comment">%   ... where the next mdh is (ulDMALength / ushSamplesInScan &amp; ushUsedChannels)</span>
+0627         <span class="comment">%   ... whether it is only for sync (MDH_SYNCDATA)</span>
+0628         <span class="comment">%   ... whether it is the last one (MDH_ACQEND)</span>
+0629         <span class="comment">% evalMDH() contains the correct and readable code for all mdh entries.</span>
+0630         <span class="keyword">try</span>
+0631             <span class="comment">% read everything and cut out the mdh</span>
+0632             data_u8 = fread( fid, ulDMALength, <span class="string">'uint8=&gt;uint8'</span> );
+0633             data_u8 = data_u8( mdhStart+end :  end );
+0634         <span class="keyword">catch</span> exc
+0635             warning( [mfilename() <span class="string">':UnxpctdEOF'</span>],  <span class="keyword">...</span>
+0636                       [ <span class="string">'\nAn unexpected read error occurred at this byte offset: %d (%g GiB)\n'</span><span class="keyword">...</span>
+0637                         <span class="string">'Will stop reading now.\n'</span>                                             <span class="keyword">...</span>
+0638                         <span class="string">'=== MATLABs error message ================\n'</span>                         <span class="keyword">...</span>
+0639                         exc.message                                                            <span class="keyword">...</span>
+0640                         <span class="string">'\n=== end of error =========================\n'</span>                       <span class="keyword">...</span>
+0641                        ], cPos, cPos/1024^3 )
+0642             isEOF = true;
+0643             <span class="keyword">break</span>
+0644         <span class="keyword">end</span>
+0645 
+0646         bitMask = data_u8(evIdx);   <span class="comment">% the initial 8 bit from evalInfoMask are enough</span>
+0647 
+0648         <span class="keyword">if</span>   isequal( data_u8(1:3), u8_000 )    <span class="keyword">...</span><span class="comment"> % probably ulDMALength == 0</span>
+0649           || bitand(bitMask, bit_0);                <span class="comment">% MDH_ACQEND</span>
+0650 
+0651             <span class="comment">% ok, look closer if really all *4* bytes are 0:</span>
+0652             data_u8(4)= bitget( data_u8(4),1);  <span class="comment">% ubit24: keep only 1 bit from the 4th byte</span>
+0653             ulDMALength = double( typecast( data_u8(1:4), <span class="string">'uint32'</span> ) );
+0654 
+0655             <span class="keyword">if</span> ulDMALength == 0 || bitand(bitMask, bit_0)
+0656                 cPos = cPos + ulDMALength;
+0657                 <span class="comment">% jump to next full 512 bytes</span>
+0658                 <span class="keyword">if</span> mod(cPos,512)
+0659                     cPos = cPos + 512 - mod(cPos,512);
+0660                 <span class="keyword">end</span>
+0661                 <span class="keyword">break</span>;
+0662             <span class="keyword">end</span>
+0663         <span class="keyword">end</span>
+0664         <span class="keyword">if</span> bitand(bitMask, bit_5);  <span class="comment">% MDH_SYNCDATA</span>
+0665             data_u8(4)= bitget( data_u8(4),1);  <span class="comment">% ubit24: keep only 1 bit from the 4th byte</span>
+0666             ulDMALength = double( typecast( data_u8(1:4), <span class="string">'uint32'</span> ) );
+0667             cPos = cPos + ulDMALength;
+0668             <span class="keyword">continue</span>
+0669         <span class="keyword">end</span>
+0670 
+0671         <span class="comment">% pehses: the pack bit indicates that multiple ADC are packed into one</span>
+0672         <span class="comment">% DMA, often in EPI scans (controlled by fRTSetReadoutPackaging in IDEA)</span>
+0673         <span class="comment">% since this code assumes one adc (x NCha) per DMA, we have to correct</span>
+0674         <span class="comment">% the &quot;DMA length&quot;</span>
+0675         <span class="comment">%     if mdh.ulPackBit</span>
+0676         <span class="comment">% it seems that the packbit is not always set correctly</span>
+0677        NCol_NCha = double( typecast( data_u8(dmaIdx), <span class="string">'uint16'</span> ) );  <span class="comment">% [ushSamplesInScan  ushUsedChannels]</span>
+0678         ulDMALength = dmaOff + (8*NCol_NCha(1) + dmaSkip) * NCol_NCha(2);
+0679 
+0680         n_acq = n_acq + 1;
+0681 
+0682         <span class="comment">% grow arrays in batches</span>
+0683         <span class="keyword">if</span> n_acq &gt; szBlob
+0684             mdh_blob( :, end + allocSize ) = 0;
+0685             filePos( end + allocSize ) = 0;
+0686             szBlob = size( mdh_blob, 2 );
+0687         <span class="keyword">end</span>
+0688         mdh_blob(:,n_acq) = data_u8;
+0689         filePos( n_acq )  = cPos;
+0690 
+0691         <span class="keyword">if</span> (100*cPos)/fileSize &gt; percentFinished + 1
+0692             percentFinished = floor((100*cPos)/fileSize);
+0693             elapsed_time    = toc(t0);
+0694             time_left       = (fileSize/cPos-1) * elapsed_time;
+0695             prevLength      = numel(progress_str);
+0696             progress_str    = sprintf(<span class="string">'    %3.0f %% read in %4.0f s; estimated time left: %4.0f s \n'</span>,<span class="keyword">...</span>
+0697                                       percentFinished,elapsed_time, time_left);
+0698             fprintf([repmat(<span class="string">'\b'</span>,1,prevLength) <span class="string">'%s'</span>],progress_str);
+0699         <span class="keyword">end</span>
+0700 
+0701         cPos = cPos + ulDMALength;
+0702     <span class="keyword">end</span> <span class="comment">% while true</span>
+0703 
+0704     <span class="keyword">if</span> isEOF
+0705         n_acq = n_acq-1;    <span class="comment">% ignore the last attempt</span>
+0706     <span class="keyword">end</span>
+0707 
+0708     filePos( n_acq+1 ) = cPos;  <span class="comment">% save pointer to the next scan</span>
+0709 
+0710     <span class="comment">% discard overallocation:</span>
+0711     mdh_blob = mdh_blob(:,1:n_acq);
+0712     filePos  = reshape( filePos(1:n_acq+1), 1, [] ); <span class="comment">% row vector</span>
+0713 
+0714     prevLength   = numel(progress_str) * (~isEOF);
+0715     elapsed_time = toc(t0);
+0716     progress_str = sprintf(<span class="string">'    100 %% read in %4.0f s; estimated time left:    0 s \n'</span>, elapsed_time);
+0717     fprintf([repmat(<span class="string">'\b'</span>,1,prevLength) <span class="string">'%s'</span>],progress_str);
+0718 
+0719 <span class="keyword">end</span> <span class="comment">% of loop_mdh_read()</span>
+0720 
+0721 
+0722 
+0723 <a name="_sub2" href="#_subfunctions" class="code">function [mdh,mask] = evalMDH( mdh_blob, version )</a>
+0724 <span class="comment">% see pkg/MrServers/MrMeasSrv/SeqIF/MDH/mdh.h</span>
+0725 <span class="comment">% and pkg/MrServers/MrMeasSrv/SeqIF/MDH/MdhProxy.h</span>
+0726 
+0727 <span class="keyword">if</span> ~isa( mdh_blob, <span class="string">'uint8'</span> )
+0728     error( [mfilename() <span class="string">':NoInt8'</span>], <span class="string">'Binary mdh data must be a uint8 array!'</span> )
+0729 <span class="keyword">end</span>
+0730 
+0731 <span class="keyword">if</span> version(end) == <span class="string">'d'</span>
+0732     isVD = true;
+0733     mdh_blob = mdh_blob([1:20 41:end], :);     <span class="comment">% remove 20 unnecessary bytes</span>
+0734 <span class="keyword">else</span>
+0735     isVD = false;
+0736 <span class="keyword">end</span>
+0737 
+0738 Nmeas   = size( mdh_blob, 2 );
+0739 
+0740 mdh.ulPackBit   = bitget( mdh_blob(4,:), 2).';
+0741 mdh.ulPCI_rx    = bitset(bitset(mdh_blob(4,:), 7, 0), 8, 0).'; <span class="comment">% keep 6 relevant bits</span>
+0742 mdh_blob(4,:)   = bitget( mdh_blob(4,:),1);  <span class="comment">% ubit24: keep only 1 bit from the 4th byte</span>
+0743 
+0744 <span class="comment">% unfortunately, typecast works on vectors, only</span>
+0745 data_uint32     = typecast( reshape(mdh_blob(1:76,:),  [],1), <span class="string">'uint32'</span> );
+0746 data_uint16     = typecast( reshape(mdh_blob(29:<span class="keyword">end</span>,:),[],1), <span class="string">'uint16'</span> );
+0747 data_single     = typecast( reshape(mdh_blob(69:<span class="keyword">end</span>,:),[],1), <span class="string">'single'</span> );
+0748 
+0749 data_uint32 = reshape( data_uint32, [], Nmeas ).';
+0750 data_uint16 = reshape( data_uint16, [], Nmeas ).';
+0751 data_single = reshape( data_single, [], Nmeas ).';
+0752                                                         <span class="comment">%  byte pos.</span>
+0753 <span class="comment">%mdh.ulDMALength               = data_uint32(:,1);      %   1 :   4</span>
+0754 mdh.lMeasUID                   = data_uint32(:,2);      <span class="comment">%   5 :   8</span>
+0755 mdh.ulScanCounter              = data_uint32(:,3);      <span class="comment">%   9 :  12</span>
+0756 mdh.ulTimeStamp                = data_uint32(:,4);      <span class="comment">%  13 :  16</span>
+0757 mdh.ulPMUTimeStamp             = data_uint32(:,5);      <span class="comment">%  17 :  20</span>
+0758 mdh.aulEvalInfoMask            = data_uint32(:,6:7);    <span class="comment">%  21 :  28</span>
+0759 mdh.ushSamplesInScan           = data_uint16(:,1);      <span class="comment">%  29 :  30</span>
+0760 mdh.ushUsedChannels            = data_uint16(:,2);      <span class="comment">%  31 :  32</span>
+0761 mdh.sLC                        = data_uint16(:,3:16);   <span class="comment">%  33 :  60</span>
+0762 mdh.sCutOff                    = data_uint16(:,17:18);  <span class="comment">%  61 :  64</span>
+0763 mdh.ushKSpaceCentreColumn      = data_uint16(:,19);     <span class="comment">%  66 :  66</span>
+0764 mdh.ushCoilSelect              = data_uint16(:,20);     <span class="comment">%  67 :  68</span>
+0765 mdh.fReadOutOffcentre          = data_single(:, 1);     <span class="comment">%  69 :  72</span>
+0766 mdh.ulTimeSinceLastRF          = data_uint32(:,19);     <span class="comment">%  73 :  76</span>
+0767 mdh.ushKSpaceCentreLineNo      = data_uint16(:,25);     <span class="comment">%  77 :  78</span>
+0768 mdh.ushKSpaceCentrePartitionNo = data_uint16(:,26);     <span class="comment">%  79 :  80</span>
+0769 
+0770 <span class="keyword">if</span> isVD
+0771     mdh.SlicePos                    = data_single(:, 4:10); <span class="comment">%  81 : 108</span>
+0772     mdh.aushIceProgramPara          = data_uint16(:,41:64); <span class="comment">% 109 : 156</span>
+0773     mdh.aushFreePara                = data_uint16(:,65:68); <span class="comment">% 157 : 164</span>
+0774 <span class="keyword">else</span>
+0775     mdh.aushIceProgramPara          = data_uint16(:,27:30); <span class="comment">%  81 :  88</span>
+0776     mdh.aushFreePara                = data_uint16(:,31:34); <span class="comment">%  89 :  96</span>
+0777     mdh.SlicePos                    = data_single(:, 8:14); <span class="comment">%  97 : 124</span>
+0778 <span class="keyword">end</span>
+0779 
+0780 <span class="comment">% inlining of evalInfoMask</span>
+0781 evalInfoMask1 = mdh.aulEvalInfoMask(:,1);
+0782 mask.MDH_ACQEND             = min(bitand(evalInfoMask1, 2^0), 1);
+0783 mask.MDH_RTFEEDBACK         = min(bitand(evalInfoMask1, 2^1), 1);
+0784 mask.MDH_HPFEEDBACK         = min(bitand(evalInfoMask1, 2^2), 1);
+0785 mask.MDH_SYNCDATA           = min(bitand(evalInfoMask1, 2^5), 1);
+0786 mask.MDH_RAWDATACORRECTION  = min(bitand(evalInfoMask1, 2^10),1);
+0787 mask.MDH_REFPHASESTABSCAN   = min(bitand(evalInfoMask1, 2^14),1);
+0788 mask.MDH_PHASESTABSCAN      = min(bitand(evalInfoMask1, 2^15),1);
+0789 mask.MDH_SIGNREV            = min(bitand(evalInfoMask1, 2^17),1);
+0790 mask.MDH_PHASCOR            = min(bitand(evalInfoMask1, 2^21),1);
+0791 mask.MDH_PATREFSCAN         = min(bitand(evalInfoMask1, 2^22),1);
+0792 mask.MDH_PATREFANDIMASCAN   = min(bitand(evalInfoMask1, 2^23),1);
+0793 mask.MDH_REFLECT            = min(bitand(evalInfoMask1, 2^24),1);
+0794 mask.MDH_NOISEADJSCAN       = min(bitand(evalInfoMask1, 2^25),1);
+0795 mask.MDH_VOP                = min(bitand(mdh.aulEvalInfoMask(2), 2^(53-32)),1); <span class="comment">% was 0 in VD</span>
+0796 
+0797 mask.MDH_IMASCAN            = ones( Nmeas, 1, <span class="string">'uint32'</span> );
+0798 
+0799 noImaScan = (   mask.MDH_ACQEND             | mask.MDH_RTFEEDBACK   | mask.MDH_HPFEEDBACK       <span class="keyword">...</span>
+0800               | mask.MDH_PHASCOR            | mask.MDH_NOISEADJSCAN | mask.MDH_PHASESTABSCAN    <span class="keyword">...</span>
+0801               | mask.MDH_REFPHASESTABSCAN   | mask.MDH_SYNCDATA                                 <span class="keyword">...</span><span class="comment"> </span>
+0802               | (mask.MDH_PATREFSCAN &amp; ~mask.MDH_PATREFANDIMASCAN) );
+0803 
+0804 mask.MDH_IMASCAN( noImaScan ) = 0;
+0805 
+0806 <span class="keyword">end</span> <span class="comment">% of evalMDH()</span></pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of voronoi_area</title>
+  <meta name="keywords" content="voronoi_area">
+  <meta name="description" content="Calculate the area (density) of a k-space trajectory via Voronoi">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html Sequence_Design --><!-- menu.html Function -->
+<h1>voronoi_area
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>Calculate the area (density) of a k-space trajectory via Voronoi</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function dcf_out = voronoi_area(k) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> Calculate the area (density) of a k-space trajectory via Voronoi
+ triangulation
+ INPUT
+      k  k-space trajectory  ([-0.5 0.5]*res)
+
+ OUTPUT
+dcf_out  area assosiated with each k-space point
+
+ Created Florian Wiesinger
+ Modified 7/2006 Rolf Schulte</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="design_spiral_pulseq.html" class="code" title="function [k,dcf,t,ind,out,grad]=design_spiral_pulseq(fov,npix,arms,ksamp,fname,gmax,smax,nucleus,acq_round2n,do_rot_file,balanced)">design_spiral_pulseq</a>	This script designs a spiral with delayed acq for fast CSI</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function dcf_out = voronoi_area(k)</a>
+0002 <span class="comment">% Calculate the area (density) of a k-space trajectory via Voronoi</span>
+0003 <span class="comment">% triangulation</span>
+0004 <span class="comment">% INPUT</span>
+0005 <span class="comment">%      k  k-space trajectory  ([-0.5 0.5]*res)</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% OUTPUT</span>
+0008 <span class="comment">%dcf_out  area assosiated with each k-space point</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% Created Florian Wiesinger</span>
+0011 <span class="comment">% Modified 7/2006 Rolf Schulte</span>
+0012 
+0013 <span class="keyword">if</span> (nargin&lt;1), help(mfilename); dcf = NaN; <span class="keyword">return</span>; <span class="keyword">end</span>;
+0014 <span class="keyword">if</span> size(k,1)~=1, error(<span class="string">'size(k,1)~=1'</span>); <span class="keyword">end</span>
+0015 
+0016 fufa = 0.7; <span class="comment">% fudge factor to reduce outside areas</span>
+0017 
+0018 tmp = version;
+0019 <span class="keyword">if</span> str2double(tmp(1))&gt;7
+0020     [ku,ki] = unique(k,<span class="string">'stable'</span>);
+0021 <span class="keyword">else</span>
+0022     [ku,ki] = unique(k);
+0023 <span class="keyword">end</span>
+0024 nupts = length(k)-length(ki);
+0025 nsimi = sum(abs(diff(sort(k)))&lt;0.02);
+0026 <span class="keyword">if</span> nsimi&gt;nupts, 
+0027     warning(<span class="string">'voronoi_area:nsimi'</span>,<span class="keyword">...</span>
+0028         <span class="string">'Detected %g similar points -&gt; check dcf'</span>,nsimi);
+0029 <span class="keyword">end</span>
+0030 <span class="keyword">if</span> nupts&gt;0, 
+0031     fprintf(<span class="string">'%g non-unique points excluded\n'</span>,nupts);
+0032 <span class="keyword">end</span>
+0033 kx  = real(ku).';
+0034 ky  = imag(ku).';
+0035 kxy = [kx,ky];
+0036 [V,C] = voronoin(kxy);      <span class="comment">% calculate voronoi vertices</span>
+0037 dcf  = zeros(1,length(kxy));
+0038 makx  = max(abs(kx));
+0039 maky  = max(abs(ky));
+0040 makxy = min([makx maky]);
+0041 tmp1 = 0;
+0042 
+0043 <span class="keyword">for</span> i1 = 1:length(C)<span class="comment">%length(kxy),     % loop through all triangles</span>
+0044     x = V(C{i1},1);
+0045     y = V(C{i1},2);
+0046     <span class="comment">% check for points outside the sampled area</span>
+0047     <span class="keyword">if</span>  any(isinf(x)) || any(isinf(y)) || <span class="keyword">...</span>
+0048             any(abs(x)&gt;makx) || any(abs(y)&gt;maky) || <span class="keyword">...</span>
+0049             any(sqrt(x.^2+y.^2)&gt;makxy), 
+0050         <span class="comment">% outside: radius -&gt; approximate area</span>
+0051         tmp1 = tmp1+1;
+0052         radii = sort(sqrt( (x-kx(i1)).^2 + (y-ky(i1)).^2 ));
+0053         dcf(i1) = radii(1)*radii(2)*fufa;
+0054         <span class="comment">% dcf(i1) = mean(radii(1:2))^2;</span>
+0055         <span class="comment">% dcf(i1) = mean(radii(1:2))^2*pi;</span>
+0056     <span class="keyword">else</span>
+0057         <span class="comment">% inside: correct area</span>
+0058         dcf(i1) = polyarea(x,y);
+0059     <span class="keyword">end</span>
+0060 <span class="keyword">end</span>
+0061 
+0062 <span class="keyword">if</span> any(isinf(dcf(:))),
+0063     dcf(isinf(dcf)) = 0;
+0064     warning(<span class="string">'voronoi_area:inf'</span>,<span class="string">'dcf contains inf -&gt; setting to zero'</span>);
+0065 <span class="keyword">end</span>
+0066 dcf_out = zeros(1,length(k));
+0067 dcf_out(1,ki) = dcf;
+0068 
+0069 <span class="comment">%</span>
+0070 mean_dcf_unsamp = mean(dcf_out(dcf_out&gt;1));
+0071 <span class="keyword">if</span> mean_dcf_unsamp&gt;1, 
+0072     warning(<span class="string">'voronoi_area:unsamp'</span>,<span class="string">'Numerically stable?'</span>);
+0073     fprintf(<span class="string">'mean(dcf(dcf&gt;1))=%g\n'</span>,mean_dcf_unsamp);
+0074     figure,plot(dcf_out);
+0075 <span class="keyword">end</span>
+0076</pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

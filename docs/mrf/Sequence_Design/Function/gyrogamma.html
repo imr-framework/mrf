@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of gyrogamma</title>
+  <meta name="keywords" content="gyrogamma">
+  <meta name="description" content="This scripts get gyromagnetic ratio of various spins (in radians)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html Sequence_Design --><!-- menu.html Function -->
+<h1>gyrogamma
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>This scripts get gyromagnetic ratio of various spins (in radians)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function g = gyrogamma(nucleus) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> This scripts get gyromagnetic ratio of various spins (in radians)
+ INPUT    
+  nucleus 'h1';'h2';'he3';'c13';'n15';'f19';'na23';'p31';'xe129';...
+          '13c1h': ratio gyrogamma('13C')/gyrogamma('1h')
+          'h1' is default
+
+ OUTPUT
+        g [rad/(s T)]
+
+ Literature:
+        Levitt; &quot;Spin Dynamics&quot;; Wiley
+        DeGraaf; &quot;In Vivo NMR Spectroscopy&quot;; Wiley
+        Ratio: jbnmr6_135_1995_wishart,pac70_117_1998_markley
+        electron: wikipedia
+
+ 11/2009 Rolf Schulte</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="design_spiral_pulseq.html" class="code" title="function [k,dcf,t,ind,out,grad]=design_spiral_pulseq(fov,npix,arms,ksamp,fname,gmax,smax,nucleus,acq_round2n,do_rot_file,balanced)">design_spiral_pulseq</a>	This script designs a spiral with delayed acq for fast CSI</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function g = gyrogamma(nucleus)</a>
+0002 <span class="comment">% This scripts get gyromagnetic ratio of various spins (in radians)</span>
+0003 <span class="comment">% INPUT</span>
+0004 <span class="comment">%  nucleus 'h1';'h2';'he3';'c13';'n15';'f19';'na23';'p31';'xe129';...</span>
+0005 <span class="comment">%          '13c1h': ratio gyrogamma('13C')/gyrogamma('1h')</span>
+0006 <span class="comment">%          'h1' is default</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% OUTPUT</span>
+0009 <span class="comment">%        g [rad/(s T)]</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% Literature:</span>
+0012 <span class="comment">%        Levitt; &quot;Spin Dynamics&quot;; Wiley</span>
+0013 <span class="comment">%        DeGraaf; &quot;In Vivo NMR Spectroscopy&quot;; Wiley</span>
+0014 <span class="comment">%        Ratio: jbnmr6_135_1995_wishart,pac70_117_1998_markley</span>
+0015 <span class="comment">%        electron: wikipedia</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% 11/2009 Rolf Schulte</span>
+0018 <span class="keyword">if</span> ~exist(<span class="string">'nucleus'</span>,<span class="string">'var'</span>), nucleus = <span class="string">'h1'</span>; <span class="keyword">end</span>
+0019 <span class="keyword">switch</span> lower(nucleus)
+0020     <span class="keyword">case</span> {<span class="string">'h1'</span>,<span class="string">'1h'</span>,1},      g = 267.522128d6;
+0021     <span class="keyword">case</span> {<span class="string">'h2'</span>,<span class="string">'2h'</span>,2},      g =  41.066d6; fprintf(<span class="string">'Spin 1\n'</span>);
+0022     <span class="keyword">case</span> {<span class="string">'h3'</span>,<span class="string">'3h'</span>},        g = 285.349d6;
+0023     <span class="keyword">case</span> {<span class="string">'he3'</span>,<span class="string">'3he'</span>,3},    g =-203.789d6;
+0024     <span class="keyword">case</span> {<span class="string">'li7'</span>,<span class="string">'7li'</span>,7},    g = 103.962d6; <span class="comment">% source wikipedia</span>
+0025     <span class="keyword">case</span> {<span class="string">'b10'</span>,<span class="string">'10b'</span>,10},   g =  28.747d6; fprintf(<span class="string">'Spin 3\n'</span>);
+0026     <span class="keyword">case</span> {<span class="string">'b11'</span>,<span class="string">'11b'</span>,11},   g =  85.847d6; fprintf(<span class="string">'Spin 3/2\n'</span>);
+0027     <span class="keyword">case</span> {<span class="string">'c13'</span>,<span class="string">'13c'</span>,13},   g =  67.283d6;
+0028     <span class="keyword">case</span> {<span class="string">'n14'</span>,<span class="string">'14n'</span>,14},   g =  19.338d6; fprintf(<span class="string">'Spin 1\n'</span>);
+0029     <span class="keyword">case</span> {<span class="string">'n15'</span>,<span class="string">'15n'</span>,15},   g = -27.126d6;
+0030     <span class="keyword">case</span> {<span class="string">'o17'</span>,<span class="string">'17o'</span>,17},   g = -36.281d6; fprintf(<span class="string">'Spin 5/2\n'</span>);
+0031     <span class="keyword">case</span> {<span class="string">'f19'</span>,<span class="string">'19f'</span>,19},   g = 251.815d6;
+0032     <span class="keyword">case</span> {<span class="string">'ne21'</span>,<span class="string">'21ne'</span>,21}; g = -2.113d7;  fprintf(<span class="string">'Spin 3/2\n'</span>);
+0033     <span class="keyword">case</span> {<span class="string">'na23'</span>,<span class="string">'23na'</span>,23}, g =  70.808d6; fprintf(<span class="string">'Spin 3/2\n'</span>);
+0034     <span class="keyword">case</span> {<span class="string">'al27'</span>,<span class="string">'27al'</span>,27}, g =  69.763d6; fprintf(<span class="string">'Spin 5/2\n'</span>);
+0035     <span class="keyword">case</span> {<span class="string">'si29'</span>,<span class="string">'29si'</span>,29}, g = -53.190d6;
+0036     <span class="keyword">case</span> {<span class="string">'p31'</span>,<span class="string">'31p'</span>,31},   g = 108.394d6;
+0037     <span class="keyword">case</span> {<span class="string">'cl35'</span>,<span class="string">'35cl'</span>,35}, g =  10.610d6; fprintf(<span class="string">'Spin 3/2\n'</span>);
+0038     <span class="keyword">case</span> {<span class="string">'cl37'</span>,<span class="string">'37cl'</span>,37}, g =   8.832d6; fprintf(<span class="string">'Spin 3/2\n'</span>);
+0039     <span class="keyword">case</span> {<span class="string">'k39'</span>,<span class="string">'39k'</span>,39},   g =  12.5d6;   fprintf(<span class="string">'Spin 3/2\n'</span>);
+0040     <span class="keyword">case</span> {<span class="string">'mn55'</span>,<span class="string">'55mn'</span>,55}, g = 6.6317e+07; fprintf(<span class="string">'Spin 5/2\n'</span>);
+0041     <span class="keyword">case</span> {<span class="string">'cu63'</span>,<span class="string">'63cu'</span>,63}, g =  71.118d6; fprintf(<span class="string">'Spin 3/2\n'</span>);
+0042     <span class="keyword">case</span> {<span class="string">'cu65'</span>,<span class="string">'65cu'</span>,65}, g =  76.044d6; fprintf(<span class="string">'Spin 3/2\n'</span>);
+0043     <span class="keyword">case</span> {<span class="string">'kr83'</span>,<span class="string">'83kr'</span>,83}, g = -1.033d7;  fprintf(<span class="string">'Spin 9/2\n'</span>);
+0044     <span class="keyword">case</span> {<span class="string">'ag107'</span>,<span class="string">'107ag'</span>,107}, g = -10.889d6;
+0045     <span class="keyword">case</span> {<span class="string">'ag109'</span>,<span class="string">'109ag'</span>,109}, g = -12.518d6;
+0046     <span class="keyword">case</span> {<span class="string">'xe129'</span>,<span class="string">'129xe'</span>,129}, g = -74.521d6;
+0047     <span class="keyword">case</span> {<span class="string">'xe131'</span>,<span class="string">'131xe'</span>,131}, g = 2.209d7;   fprintf(<span class="string">'Spin 3/2\n'</span>);
+0048     <span class="keyword">case</span> {<span class="string">'cs133'</span>,<span class="string">'133cs'</span>,133}, g = 35.0878d6; fprintf(<span class="string">'Spin 7/2\n'</span>);
+0049     <span class="keyword">case</span> {<span class="string">'pb207'</span>,<span class="string">'207pb'</span>,207}, g =  55.805d6;
+0050     <span class="keyword">case</span> {<span class="string">'13c1h'</span>},         g = 0.251449530; fprintf(<span class="string">'Ratio 13C/1H\n'</span>);
+0051     <span class="keyword">case</span> {<span class="string">'e'</span>},             g = 1.760859770d11;
+0052     <span class="keyword">otherwise</span>, error(<span class="string">'Input undefined'</span>);
+0053 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

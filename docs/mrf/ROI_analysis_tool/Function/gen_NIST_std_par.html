@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of gen_NIST_std_par</title>
+  <meta name="keywords" content="gen_NIST_std_par">
+  <meta name="description" content="Input map parameters and return phantom parameters based on map type, map">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html ROI_analysis_tool --><!-- menu.html Function -->
+<h1>gen_NIST_std_par
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>Input map parameters and return phantom parameters based on map type, map</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function NIST_std_par = gen_NIST_std_par(map_type, map_size, fov) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> Input map parameters and return phantom parameters based on map type, map
+ size and fov. 
+ INPUT
+   map_type  type of map (T1 or T2)
+   map_size  size of map, for example, 128 means the map size is 128x128
+        fov  field of view                                  [mm]
+
+ OUTPUT
+   phan_std_par  standard phantom parameters.
+
+ 7/2019 Enlin Qian
+ # Copyright of the Board of Trustees of Columbia University in the City of New York</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="NIST_ROI_ana.html" class="code" title="function sphere_par = NIST_ROI_ana(map_data, map_type, map_size, fov)">NIST_ROI_ana</a>	Input map mat file and return ROI analysis of a ISMRM/NIST phantom, all</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function NIST_std_par = gen_NIST_std_par(map_type, map_size, fov)</a>
+0002 <span class="comment">% Input map parameters and return phantom parameters based on map type, map</span>
+0003 <span class="comment">% size and fov.</span>
+0004 <span class="comment">% INPUT</span>
+0005 <span class="comment">%   map_type  type of map (T1 or T2)</span>
+0006 <span class="comment">%   map_size  size of map, for example, 128 means the map size is 128x128</span>
+0007 <span class="comment">%        fov  field of view                                  [mm]</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% OUTPUT</span>
+0010 <span class="comment">%   phan_std_par  standard phantom parameters.</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% 7/2019 Enlin Qian</span>
+0013 <span class="comment">% # Copyright of the Board of Trustees of Columbia University in the City of New York</span>
+0014 NIST_std_par.num_spheres = 14;
+0015 NIST_std_par.voxel_size = fov/map_size; <span class="comment">% unit in mm/voxel</span>
+0016 NIST_std_par.sphere_radius = 8; <span class="comment">% unit in mm</span>
+0017 NIST_std_par.temp_rot_center = [map_size/2, map_size/2]; <span class="comment">% unit in pixel</span>
+0018 
+0019 <span class="keyword">switch</span>(map_type)
+0020     <span class="keyword">case</span> <span class="string">'T1'</span>
+0021         NIST_std_par.true_value = [1.989, 1.454, 0.9841, 0.706, 0.4967,<span class="keyword">...</span>
+0022             0.3515, 0.24713, 0.1753, 0.1259, 0.089, 0.0627, 0.04453, 0.03084, 0.021719];
+0023         NIST_std_par.plane_radius = 170; <span class="comment">% mm</span>
+0024                  
+0025     <span class="keyword">case</span> <span class="string">'T2'</span>
+0026         NIST_std_par.true_value = [0.5813, 0.4035, 0.2781, 0.19094, 0.13327,<span class="keyword">...</span>
+0027             0.09689, 0.06407, 0.04642, 0.03197, 0.02256, 0.015813, 0.011237, 0.007911, 0.005592];
+0028         NIST_std_par.plane_radius = 195; <span class="comment">% mm</span>
+0029 <span class="keyword">end</span>
+0030 NIST_std_par.intensity_range = [NIST_std_par.true_value(1)-0.2, NIST_std_par.true_value(1)+0.2];
+0031 
+0032 <span class="comment">%% convert mm to voxel based on map_size and fov</span>
+0033 NIST_std_par.sphere_radius = NIST_std_par.sphere_radius/NIST_std_par.voxel_size; <span class="comment">% convert to unit in voxel</span>
+0034 NIST_std_par.plane_radius = NIST_std_par.plane_radius/NIST_std_par.voxel_size; <span class="comment">% convert to unit in voxel</span>
+0035 
+0036 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

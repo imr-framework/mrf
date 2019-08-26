@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of read_twix_hdr</title>
+  <meta name="keywords" content="read_twix_hdr">
+  <meta name="description" content="This function reads raw data header information from siemens MRI scanners">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html Image_Reconstruction --><!-- menu.html Function -->
+<h1>read_twix_hdr
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>This function reads raw data header information from siemens MRI scanners</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [prot,rstraj] = read_twix_hdr(fid) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> This function reads raw data header information from siemens MRI scanners
+ (currently VB and VD software versions are supported and tested).
+
+ Created 11/2014 Philipp Ehses (philipp.ehses@tuebingen.mpg.de)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="mapVBVDVE.html" class="code" title="function [twix_obj version] = mapVBVDVE(filename,varargin)">mapVBVDVE</a>	This script reads Siemens raw .dat file from VB/VD MRI raw data.</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function prot = parse_buffer(buffer)</a></li><li><a href="#_sub2" class="code">function xprot = parse_xprot(buffer)</a></li><li><a href="#_sub3" class="code">function mrprot = parse_ascconv(buffer)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [prot,rstraj] = read_twix_hdr(fid)</a>
+0002 <span class="comment">% This function reads raw data header information from siemens MRI scanners</span>
+0003 <span class="comment">% (currently VB and VD software versions are supported and tested).</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Created 11/2014 Philipp Ehses (philipp.ehses@tuebingen.mpg.de)</span>
+0006 
+0007 nbuffers = fread(fid, 1,<span class="string">'uint32'</span>);
+0008 
+0009 prot = [];
+0010 <span class="keyword">for</span> b=1:nbuffers
+0011     namesz  = 0;
+0012     byte = 1;
+0013     <span class="keyword">while</span> byte~=0 <span class="comment">% look for NULL-character</span>
+0014         byte   = fread(fid, 1, <span class="string">'uint8'</span>);
+0015         namesz = namesz+1;
+0016     <span class="keyword">end</span>
+0017     fseek(fid,-namesz,<span class="string">'cof'</span>);
+0018     bufname        = fread(fid,namesz,<span class="string">'char=&gt;char'</span>).';
+0019     bufname(end)   = []; <span class="comment">% delete NULL character</span>
+0020     buflen         = fread(fid, 1,<span class="string">'uint32'</span>);
+0021     buffer         = fread(fid, buflen, <span class="string">'char=&gt;char'</span>).';
+0022     buffer         = regexprep(buffer,<span class="string">'\n\s*\n'</span>,<span class="string">''</span>); <span class="comment">% delete empty lines</span>
+0023     prot.(bufname) = <a href="#_sub1" class="code" title="subfunction prot = parse_buffer(buffer)">parse_buffer</a>(buffer);
+0024 <span class="keyword">end</span>
+0025 
+0026 <span class="keyword">if</span> nargout&gt;1
+0027     rstraj = [];
+0028     <span class="keyword">if</span> isfield(prot.Meas,<span class="string">'alRegridMode'</span>) &amp;&amp; prot.Meas.alRegridMode(1)&gt;1
+0029         ncol           = prot.Meas.alRegridDestSamples(1);
+0030         dwelltime      = prot.Meas.aflRegridADCDuration(1)/ncol;
+0031         gr_adc         = zeros(1,ncol,<span class="string">'single'</span>);
+0032         time_adc       = prot.Meas.alRegridDelaySamplesTime(1) + dwelltime * (0.5:ncol);
+0033         ixUp           = time_adc &lt;= prot.Meas.alRegridRampupTime(1);
+0034         ixFlat         = (time_adc &lt;= prot.Meas.alRegridRampupTime(1)+prot.Meas.alRegridFlattopTime(1)) &amp; ~ixUp;
+0035         ixDn           = ~ixUp &amp; ~ixFlat;
+0036         gr_adc(ixFlat) = 1;
+0037         <span class="keyword">if</span> prot.Meas.alRegridMode(1) == 2
+0038             <span class="comment">% trapezoidal gradient</span>
+0039             gr_adc(ixUp)   = time_adc(ixUp)/prot.Meas.alRegridRampupTime(1);
+0040             gr_adc(ixDn)   = 1 - (time_adc(ixDn)-prot.Meas.alRegridRampupTime(1)-prot.Meas.alRegridFlattopTime(1))/prot.Meas.alRegridRampdownTime(1);
+0041         <span class="keyword">elseif</span> prot.Meas.alRegridMode(1) == 4
+0042             <span class="comment">% sinusoidal gradient</span>
+0043             gr_adc(ixUp)   = sin(pi/2*time_adc(ixUp)/prot.Meas.alRegridRampupTime(1));
+0044             gr_adc(ixDn)   = sin(pi/2*(1+(time_adc(ixDn)-prot.Meas.alRegridRampupTime(1)-prot.Meas.alRegridFlattopTime(1))/prot.Meas.alRegridRampdownTime(1)));
+0045         <span class="keyword">else</span>
+0046             warning(<span class="string">'regridding mode unknown'</span>);
+0047             <span class="keyword">return</span>;
+0048         <span class="keyword">end</span>
+0049         rstraj = (cumsum(gr_adc(:)) - ncol/2)/sum(gr_adc(:));
+0050         rstraj = rstraj - rstraj(ncol/2+1);
+0051     <span class="keyword">end</span>
+0052 <span class="keyword">end</span>
+0053 
+0054 <span class="keyword">end</span>
+0055 
+0056 <a name="_sub1" href="#_subfunctions" class="code">function prot = parse_buffer(buffer)</a>
+0057 [ascconv,xprot] = regexp(buffer,<span class="string">'### ASCCONV BEGIN[^\n]*\n(.*)\s### ASCCONV END ###'</span>,<span class="string">'tokens'</span>,<span class="string">'split'</span>);
+0058 
+0059 <span class="keyword">if</span> ~isempty(ascconv)
+0060     ascconv = ascconv{:}{:};
+0061     prot = <a href="#_sub3" class="code" title="subfunction mrprot = parse_ascconv(buffer)">parse_ascconv</a>(ascconv);
+0062 <span class="keyword">else</span>
+0063     prot = struct();
+0064 <span class="keyword">end</span>
+0065 
+0066 <span class="keyword">if</span> ~isempty(xprot)
+0067     xprot = xprot{:};
+0068     xprot = <a href="#_sub2" class="code" title="subfunction xprot = parse_xprot(buffer)">parse_xprot</a>(xprot);
+0069     <span class="keyword">if</span> isstruct(xprot)
+0070         name   = cat(1,fieldnames(prot),fieldnames(xprot));
+0071         val    = cat(1,struct2cell(prot),struct2cell(xprot));
+0072         [~,ix] = unique(name);
+0073         prot   = cell2struct(val(ix),name(ix));
+0074     <span class="keyword">end</span>
+0075 <span class="keyword">end</span>
+0076 <span class="keyword">end</span>
+0077 
+0078 <a name="_sub2" href="#_subfunctions" class="code">function xprot = parse_xprot(buffer)</a>
+0079 xprot = [];
+0080 tokens = regexp(buffer, <span class="string">'&lt;Param(?:Bool|Long|String)\.&quot;(\w+)&quot;&gt;\s*{([^}]*)'</span>,<span class="string">'tokens'</span>);
+0081 tokens = [tokens, regexp(buffer, <span class="string">'&lt;ParamDouble\.&quot;(\w+)&quot;&gt;\s*{\s*(&lt;Precision&gt;\s*[0-9]*)?\s*([^}]*)'</span>,<span class="string">'tokens'</span>)];
+0082 <span class="keyword">for</span> m=1:numel(tokens)
+0083     name         = char(tokens{m}(1));
+0084     <span class="comment">% field name has to start with letter</span>
+0085     <span class="keyword">if</span> (~isletter(name(1)))
+0086         name = strcat(<span class="string">'x'</span>, name);
+0087     <span class="keyword">end</span>
+0088     
+0089     value = char(strtrim(regexprep(tokens{m}(end), <span class="string">'(&quot;*)|( *&lt;\w*&gt; *[^\n]*)'</span>, <span class="string">''</span>)));
+0090     value = regexprep(value, <span class="string">'\s*'</span>, <span class="string">' '</span>);
+0091     
+0092     <span class="keyword">try</span> <span class="comment">%#ok&lt;TRYNC&gt;</span>
+0093         value = eval([<span class="string">'['</span> value <span class="string">']'</span>]);  <span class="comment">% inlined str2num()</span>
+0094     <span class="keyword">end</span>
+0095     
+0096     xprot.(name) = value;
+0097 <span class="keyword">end</span>
+0098 <span class="keyword">end</span>
+0099 
+0100 <a name="_sub3" href="#_subfunctions" class="code">function mrprot = parse_ascconv(buffer)</a>
+0101 mrprot = [];
+0102 <span class="comment">% [mv] was: vararray = regexp(buffer,'(?&lt;name&gt;\S*)\s*=\s(?&lt;value&gt;\S*)','names');</span>
+0103 vararray = regexp(buffer,<span class="string">'(?&lt;name&gt;\S*)\s*=\s*(?&lt;value&gt;\S*)'</span>,<span class="string">'names'</span>);
+0104 i = 0;
+0105 <span class="keyword">for</span> var=vararray
+0106     <span class="keyword">try</span>
+0107         value = eval([<span class="string">'['</span> var.value <span class="string">']'</span>]);  <span class="comment">% inlined str2num()</span>
+0108     <span class="keyword">catch</span>
+0109         value = var.value;
+0110     <span class="keyword">end</span>
+0111     
+0112     <span class="comment">% now split array name and index (if present)</span>
+0113     v = regexp(var.name,<span class="string">'(?&lt;name&gt;\w*)\[(?&lt;ix&gt;[0-9]*)\]|(?&lt;name&gt;\w*)'</span>,<span class="string">'names'</span>);
+0114     
+0115     cnt = 0;
+0116     tmp = cell(2,numel(v));
+0117     
+0118     breaked = false;
+0119     <span class="keyword">for</span> k=1:numel(v)
+0120         <span class="keyword">if</span> ~isletter(v(k).name(1))
+0121             breaked = true;
+0122             <span class="keyword">break</span>;
+0123         <span class="keyword">end</span>
+0124         cnt = cnt+1;
+0125         tmp{1,cnt} = <span class="string">'.'</span>;
+0126         tmp{2,cnt} = v(k).name;
+0127         
+0128         <span class="keyword">if</span> ~isempty(v(k).ix)
+0129             cnt = cnt+1;
+0130             tmp{1,cnt} = <span class="string">'{}'</span>;
+0131             tmp{2,cnt}{1} = 1 + str2double(v(k).ix);
+0132         <span class="keyword">end</span>
+0133     <span class="keyword">end</span>
+0134     <span class="keyword">if</span> ~breaked &amp;&amp; ~isempty(tmp)
+0135         S = substruct(tmp{:});
+0136         
+0137         <span class="comment">%% TODO _ delete later - only for DEBUG</span>
+0138         
+0139         <span class="comment">%             var_name='mrprot_hat';</span>
+0140         <span class="comment">%             for k =1:length(S)</span>
+0141         <span class="comment">%                     if(strcmp(S(k).type,'.'))</span>
+0142         <span class="comment">%                         var_name = [var_name,S(k).type,S(k).subs];</span>
+0143         <span class="comment">%                     elseif(strcmp(S(k).type,'{}'))</span>
+0144         <span class="comment">%                         var_name = [var_name,'{',num2str(cell2mat(S(k).subs)),'}'];</span>
+0145         <span class="comment">%                     end</span>
+0146         <span class="comment">%</span>
+0147         <span class="comment">%             end</span>
+0148         <span class="comment">%             evalin('caller', [var_name,'=',num2str(value)]);</span>
+0149         <span class="comment">%%</span>
+0150         mrprot = subsasgn(mrprot,S,value);
+0151     <span class="keyword">end</span>
+0152     i = i + 1;
+0153 <span class="keyword">end</span>
+0154 <span class="keyword">end</span>
+0155</pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

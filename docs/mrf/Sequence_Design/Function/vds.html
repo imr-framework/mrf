@@ -1,0 +1,548 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of vds</title>
+  <meta name="keywords" content="vds">
+  <meta name="description" content="This script generates variable density spiral which traces">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html Sequence_Design --><!-- menu.html Function -->
+<h1>vds
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>This script generates variable density spiral which traces</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [k,g,s,time,r,theta] = vds(smax,gmax,T,N,Fcoeff,rmax) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> This script generates variable density spiral which traces
+    out the trajectory
+                 
+            k(t) = r(t) exp(i*q(t)),         [1]
+
+    Where q is the same as theta...
+        r and q are chosen to satisfy:
+
+        1) Maximum gradient amplitudes and slew rates.
+        2) Maximum gradient due to FOV, where FOV can
+           vary with k-space radius r/rmax, as
+
+            FOV(r) = Sum    Fcoeff(k)*(r/rmax)^(k-1)   [2]
+ INPUT
+    smax  maximum slew rate G/cm/s
+    gmax  maximum gradient G/cm (limited by Gmax or FOV)
+       T  sampling period (s) for gradient AND acquisition.
+       N  number of interleaves.
+ Fcoeff  FOV coefficients with respect to r - see above.
+    rmax  value of k-space radius at which to stop (cm^-1).
+
+ OUTPUT
+       k  k-space trajectory (kx+iky) in cm-1.
+       g  gradient waveform (Gx+iGy) in G/cm.
+       s  derivative of g (Sx+iSy) in G/cm/s.
+    time  time points corresponding to above (s).
+       r  k-space radius vs time (used to design spiral)
+  theta  atan2(ky,kx) = k-space angle vs time.
+
+ METHOD
+ Let r1 and r2 be the first derivatives of r in [1].    
+ Let q1 and q2 be the first derivatives of theta in [1].    
+ Also, r0 = r, and q0 = theta - sometimes both are used.
+ F = F(r) defined by Fcoeff.
+
+ Differentiating [1], we can get G = a(r0,r1,q0,q1,F)    
+ and differentiating again, we get S = b(r0,r1,r2,q0,q1,q2,F)
+
+ (functions a() and b() are reasonably easy to obtain.)
+
+ FOV limits put a constraint between r and q:
+
+        dr/dq = N/(2*pi*F)                [3]    
+
+ We can use [3] and the chain rule to give 
+
+        q1 = 2*pi*F/N * r1                [4]
+
+ and
+
+        q2 = 2*pi/N*dF/dr*r1^2 + 2*pi*F/N*r2        [5]
+
+ Now using [4] and [5], we can substitute for q1 and q2
+ in functions a() and b(), giving
+
+        G = c(r0,r1,F)
+ and     S = d(r0,r1,r2,F,dF/dr)
+
+ Using the fact that the spiral should be either limited
+ by amplitude (Gradient or FOV limit) or slew rate, we can
+ solve 
+        |c(r0,r1,F)| = |Gmax|                  [6]
+
+ analytically for r1, or
+    
+          |d(r0,r1,r2,F,dF/dr)| = |Smax|             [7]
+
+ analytically for r2.
+
+ [7] is a quadratic equation in r2.  The smaller of the 
+ roots is taken, and the real part of the root is used to
+ avoid possible numeric errors - the roots should be real
+ always.
+
+ The choice of whether or not to use [6] or [7], and the
+ solving for r2 or r1 is done by findq2r2 - in this .m file.
+
+ Once the second derivative of theta(q) or r is obtained,
+ it can be integrated to give q1 and r1, and then integrated
+ again to give q and r.  The gradient waveforms follow from
+ q and r.     
+
+ Brian Hargreaves -- Sept 2000.
+
+ See Brian's journal, Vol 6, P.24.
+
+    See also:  vds2.m,  vdsmex.m,  <a href="vds.html" class="code" title="function [k,g,s,time,r,theta] = vds(smax,gmax,T,N,Fcoeff,rmax)">vds</a>.c
+
+ HISTORY
+ $Log: <a href="vds.html" class="code" title="function [k,g,s,time,r,theta] = vds(smax,gmax,T,N,Fcoeff,rmax)">vds</a>.m,v $
+ Revision 1.5  2004/04/27 18:08:44  brian
+ Changed FOV to a polynomial of unlimited length,
+ and hopefully changed all comments accordingly.
+ Also moved sub-functions into <a href="vds.html" class="code" title="function [k,g,s,time,r,theta] = vds(smax,gmax,T,N,Fcoeff,rmax)">vds</a>.m so that
+ no other .m files are needed.
+
+ Revision 1.4  2003/09/16 02:55:52  brian
+ minor edits
+
+ Revision 1.3  2002/11/18 05:36:02  brian
+ Rounds lengths to a multiple of 4 to avoid
+ frame size issues later on.
+
+ Revision 1.2  2002/11/18 05:32:19  brian
+ minor edits
+
+ Revision 1.1  2002/03/28 01:03:20  bah
+ Added to CVS</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="design_spiral_pulseq.html" class="code" title="function [k,dcf,t,ind,out,grad]=design_spiral_pulseq(fov,npix,arms,ksamp,fname,gmax,smax,nucleus,acq_round2n,do_rot_file,balanced)">design_spiral_pulseq</a>	This script designs a spiral with delayed acq for fast CSI</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [q2,r2] = findq2r2(smax,gmax,r,r1,T,Ts,N,Fcoeff,rmax)</a></li><li><a href="#_sub2" class="code">function [roots] = qdf(a,b,c)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [k,g,s,time,r,theta] = vds(smax,gmax,T,N,Fcoeff,rmax)</a>
+0002 <span class="comment">% This script generates variable density spiral which traces</span>
+0003 <span class="comment">%    out the trajectory</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%            k(t) = r(t) exp(i*q(t)),         [1]</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%    Where q is the same as theta...</span>
+0008 <span class="comment">%        r and q are chosen to satisfy:</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">%        1) Maximum gradient amplitudes and slew rates.</span>
+0011 <span class="comment">%        2) Maximum gradient due to FOV, where FOV can</span>
+0012 <span class="comment">%           vary with k-space radius r/rmax, as</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">%            FOV(r) = Sum    Fcoeff(k)*(r/rmax)^(k-1)   [2]</span>
+0015 <span class="comment">% INPUT</span>
+0016 <span class="comment">%    smax  maximum slew rate G/cm/s</span>
+0017 <span class="comment">%    gmax  maximum gradient G/cm (limited by Gmax or FOV)</span>
+0018 <span class="comment">%       T  sampling period (s) for gradient AND acquisition.</span>
+0019 <span class="comment">%       N  number of interleaves.</span>
+0020 <span class="comment">% Fcoeff  FOV coefficients with respect to r - see above.</span>
+0021 <span class="comment">%    rmax  value of k-space radius at which to stop (cm^-1).</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% OUTPUT</span>
+0024 <span class="comment">%       k  k-space trajectory (kx+iky) in cm-1.</span>
+0025 <span class="comment">%       g  gradient waveform (Gx+iGy) in G/cm.</span>
+0026 <span class="comment">%       s  derivative of g (Sx+iSy) in G/cm/s.</span>
+0027 <span class="comment">%    time  time points corresponding to above (s).</span>
+0028 <span class="comment">%       r  k-space radius vs time (used to design spiral)</span>
+0029 <span class="comment">%  theta  atan2(ky,kx) = k-space angle vs time.</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% METHOD</span>
+0032 <span class="comment">% Let r1 and r2 be the first derivatives of r in [1].</span>
+0033 <span class="comment">% Let q1 and q2 be the first derivatives of theta in [1].</span>
+0034 <span class="comment">% Also, r0 = r, and q0 = theta - sometimes both are used.</span>
+0035 <span class="comment">% F = F(r) defined by Fcoeff.</span>
+0036 <span class="comment">%</span>
+0037 <span class="comment">% Differentiating [1], we can get G = a(r0,r1,q0,q1,F)</span>
+0038 <span class="comment">% and differentiating again, we get S = b(r0,r1,r2,q0,q1,q2,F)</span>
+0039 <span class="comment">%</span>
+0040 <span class="comment">% (functions a() and b() are reasonably easy to obtain.)</span>
+0041 <span class="comment">%</span>
+0042 <span class="comment">% FOV limits put a constraint between r and q:</span>
+0043 <span class="comment">%</span>
+0044 <span class="comment">%        dr/dq = N/(2*pi*F)                [3]</span>
+0045 <span class="comment">%</span>
+0046 <span class="comment">% We can use [3] and the chain rule to give</span>
+0047 <span class="comment">%</span>
+0048 <span class="comment">%        q1 = 2*pi*F/N * r1                [4]</span>
+0049 <span class="comment">%</span>
+0050 <span class="comment">% and</span>
+0051 <span class="comment">%</span>
+0052 <span class="comment">%        q2 = 2*pi/N*dF/dr*r1^2 + 2*pi*F/N*r2        [5]</span>
+0053 <span class="comment">%</span>
+0054 <span class="comment">% Now using [4] and [5], we can substitute for q1 and q2</span>
+0055 <span class="comment">% in functions a() and b(), giving</span>
+0056 <span class="comment">%</span>
+0057 <span class="comment">%        G = c(r0,r1,F)</span>
+0058 <span class="comment">% and     S = d(r0,r1,r2,F,dF/dr)</span>
+0059 <span class="comment">%</span>
+0060 <span class="comment">% Using the fact that the spiral should be either limited</span>
+0061 <span class="comment">% by amplitude (Gradient or FOV limit) or slew rate, we can</span>
+0062 <span class="comment">% solve</span>
+0063 <span class="comment">%        |c(r0,r1,F)| = |Gmax|                  [6]</span>
+0064 <span class="comment">%</span>
+0065 <span class="comment">% analytically for r1, or</span>
+0066 <span class="comment">%</span>
+0067 <span class="comment">%          |d(r0,r1,r2,F,dF/dr)| = |Smax|             [7]</span>
+0068 <span class="comment">%</span>
+0069 <span class="comment">% analytically for r2.</span>
+0070 <span class="comment">%</span>
+0071 <span class="comment">% [7] is a quadratic equation in r2.  The smaller of the</span>
+0072 <span class="comment">% roots is taken, and the real part of the root is used to</span>
+0073 <span class="comment">% avoid possible numeric errors - the roots should be real</span>
+0074 <span class="comment">% always.</span>
+0075 <span class="comment">%</span>
+0076 <span class="comment">% The choice of whether or not to use [6] or [7], and the</span>
+0077 <span class="comment">% solving for r2 or r1 is done by findq2r2 - in this .m file.</span>
+0078 <span class="comment">%</span>
+0079 <span class="comment">% Once the second derivative of theta(q) or r is obtained,</span>
+0080 <span class="comment">% it can be integrated to give q1 and r1, and then integrated</span>
+0081 <span class="comment">% again to give q and r.  The gradient waveforms follow from</span>
+0082 <span class="comment">% q and r.</span>
+0083 <span class="comment">%</span>
+0084 <span class="comment">% Brian Hargreaves -- Sept 2000.</span>
+0085 <span class="comment">%</span>
+0086 <span class="comment">% See Brian's journal, Vol 6, P.24.</span>
+0087 <span class="comment">%</span>
+0088 <span class="comment">%    See also:  vds2.m,  vdsmex.m,  vds.c</span>
+0089 <span class="comment">%</span>
+0090 <span class="comment">% HISTORY</span>
+0091 <span class="comment">% $Log: vds.m,v $</span>
+0092 <span class="comment">% Revision 1.5  2004/04/27 18:08:44  brian</span>
+0093 <span class="comment">% Changed FOV to a polynomial of unlimited length,</span>
+0094 <span class="comment">% and hopefully changed all comments accordingly.</span>
+0095 <span class="comment">% Also moved sub-functions into vds.m so that</span>
+0096 <span class="comment">% no other .m files are needed.</span>
+0097 <span class="comment">%</span>
+0098 <span class="comment">% Revision 1.4  2003/09/16 02:55:52  brian</span>
+0099 <span class="comment">% minor edits</span>
+0100 <span class="comment">%</span>
+0101 <span class="comment">% Revision 1.3  2002/11/18 05:36:02  brian</span>
+0102 <span class="comment">% Rounds lengths to a multiple of 4 to avoid</span>
+0103 <span class="comment">% frame size issues later on.</span>
+0104 <span class="comment">%</span>
+0105 <span class="comment">% Revision 1.2  2002/11/18 05:32:19  brian</span>
+0106 <span class="comment">% minor edits</span>
+0107 <span class="comment">%</span>
+0108 <span class="comment">% Revision 1.1  2002/03/28 01:03:20  bah</span>
+0109 <span class="comment">% Added to CVS</span>
+0110 
+0111 disp(<span class="string">'vds.m'</span>);
+0112 gamma = 4258;
+0113 
+0114 oversamp = 8;        <span class="comment">% Keep this even.</span>
+0115 To = T/oversamp;    <span class="comment">% To is the period with oversampling.</span>
+0116 
+0117 
+0118 
+0119 q0 = 0;    
+0120 q1 = 0;
+0121 theta = zeros(1,10000);
+0122 r = zeros(1,10000);
+0123 r0 = 0;
+0124 r1 = 0;
+0125 
+0126 time = zeros(1,10000);
+0127 t = 0;
+0128 count = 1;
+0129 
+0130 theta = zeros(1,1000000);
+0131 r = zeros(1,1000000);
+0132 time = zeros(1,1000000);
+0133 
+0134 <span class="keyword">while</span> r0 &lt; rmax
+0135     [q2,r2] = <a href="#_sub1" class="code" title="subfunction [q2,r2] = findq2r2(smax,gmax,r,r1,T,Ts,N,Fcoeff,rmax)">findq2r2</a>(smax,gmax,r0,r1,To,T,N,Fcoeff,rmax);
+0136 
+0137     <span class="comment">% Integrate for r, r', theta and theta'</span>
+0138     q1 = q1 + q2*To;
+0139     q0 = q0 + q1*To;
+0140      t = t + To;
+0141 
+0142     r1 = r1 + r2*To;
+0143     r0 = r0 + r1*To;
+0144 
+0145     <span class="comment">% Store.</span>
+0146     count = count+1; 
+0147     theta(count) = q0;
+0148     r(count) = r0;
+0149     time(count) = t;
+0150 
+0151     <span class="keyword">if</span> (rem(count,100)==0)
+0152         tt = sprintf(<span class="string">'%d points, |k|=%f'</span>,count,r0);
+0153         <span class="comment">% disp(tt);</span>
+0154     <span class="keyword">end</span>;
+0155 <span class="keyword">end</span>;
+0156 
+0157 r = r(oversamp/2:oversamp:count);
+0158 theta = theta(oversamp/2:oversamp:count);
+0159 time = time(oversamp/2:oversamp:count);
+0160 
+0161 <span class="comment">%    Keep the length a multiple of 4, to save pain...!</span>
+0162 <span class="comment">%</span>
+0163 ltheta = 4*floor(length(theta)/4);
+0164 r=r(1:ltheta);
+0165 theta=theta(1:ltheta);
+0166 time=time(1:ltheta);
+0167 
+0168 <span class="comment">%</span>
+0169 <span class="comment">%     Plot.</span>
+0170 <span class="comment">%</span>
+0171 <span class="comment">%x = alpha*theta .* cos(theta);</span>
+0172 <span class="comment">%y = alpha*theta .* sin(theta);</span>
+0173 
+0174 <span class="comment">%plot(x,y);</span>
+0175 <span class="comment">%title('k-space trajectory.');</span>
+0176 
+0177 
+0178 k = r.*exp(i*theta);
+0179 
+0180 g = 1/gamma*([k 0]-[0 k])/T;
+0181 g = g(1:length(k));
+0182 
+0183 s = ([g 0]-[0 g])/T;
+0184 s = s(1:length(k));
+0185 
+0186 
+0187 <span class="comment">% ========= Plot gradients and slew rates. ==========</span>
+0188 
+0189 
+0190 <span class="comment">% subplot(2,2,1);</span>
+0191 <span class="comment">% plot(real(k),imag(k));</span>
+0192 <span class="comment">% title('k_y vs k_x');</span>
+0193 <span class="comment">% axis('square');</span>
+0194 <span class="comment">%</span>
+0195 <span class="comment">% subplot(2,2,2);</span>
+0196 <span class="comment">% plot(time,real(k),'r--',time,imag(k),'b--',time,abs(k),'k-');</span>
+0197 <span class="comment">% title('k vs t');</span>
+0198 <span class="comment">% ylabel('k (cm^{-1})');</span>
+0199 <span class="comment">%</span>
+0200 <span class="comment">% subplot(2,2,3);</span>
+0201 <span class="comment">% plot(time,real(g),'r--',time,imag(g),'b--',time,abs(g),'k-');</span>
+0202 <span class="comment">% title('g vs t');</span>
+0203 <span class="comment">% ylabel('G (G/cm)');</span>
+0204 <span class="comment">%</span>
+0205 <span class="comment">% subplot(2,2,4);</span>
+0206 <span class="comment">% plot(time,real(s),'r--',time,imag(s),'b--',time,abs(s),'k-');</span>
+0207 <span class="comment">% title('s vs t');</span>
+0208 <span class="comment">% ylabel('Slew Rate (G/cm/s)');</span>
+0209 
+0210 
+0211 <span class="keyword">return</span>;
+0212 
+0213 
+0214 
+0215 
+0216 <span class="comment">%</span>
+0217 <span class="comment">%      function [q2,r2] = q2r2(smax,gmax,r,r1,T,Ts,N,F)</span>
+0218 <span class="comment">%</span>
+0219 <span class="comment">%    VARIABLE DENSITY SPIRAL DESIGN ITERATION</span>
+0220 <span class="comment">%    ----------------------------------------</span>
+0221 <span class="comment">%    Calculates the second derivative of r and q (theta),</span>
+0222 <span class="comment">%    the slew-limited or FOV-limited</span>
+0223 <span class="comment">%    r(t) and q(t) waveforms such that</span>
+0224 <span class="comment">%</span>
+0225 <span class="comment">%        k(t) = r(t) exp(i*q(t))</span>
+0226 <span class="comment">%</span>
+0227 <span class="comment">%    Where the FOV is a function of k-space radius (r)</span>
+0228 <span class="comment">%</span>
+0229 <span class="comment">%    FOV = Fcoeff(1) + Fcoeff(2)*r/rmax + Fcoeff(3)*(r/rmax)^2 + ... ;</span>
+0230 <span class="comment">%</span>
+0231 <span class="comment">%    F(1) in cm.</span>
+0232 <span class="comment">%    F(2) in cm^2.</span>
+0233 <span class="comment">%    F(3) in cm^3.</span>
+0234 <span class="comment">%    .</span>
+0235 <span class="comment">%    .</span>
+0236 <span class="comment">%    .</span>
+0237 <span class="comment">%</span>
+0238 <span class="comment">%    The method used is described in vds.m</span>
+0239 <span class="comment">%</span>
+0240 <span class="comment">%    INPUT:</span>
+0241 <span class="comment">%    -----</span>
+0242 <span class="comment">%    smax      = Maximum slew rate in G/cm/s.</span>
+0243 <span class="comment">%    gmax     = Maximum gradient amplitdue in G.</span>
+0244 <span class="comment">%    r    = Current value of r.</span>
+0245 <span class="comment">%    r1     = Current value of r', first derivative of r wrt time.</span>
+0246 <span class="comment">%    T    = Gradient sample rate.</span>
+0247 <span class="comment">%    Ts    = Data sampling rate.</span>
+0248 <span class="comment">%    N    = Number of spiral interleaves.</span>
+0249 <span class="comment">%    F is described above.</span>
+0250 <span class="comment">%</span>
+0251 
+0252 
+0253 <span class="comment">% =============== CVS Log Messages ==========================</span>
+0254 <span class="comment">%    This file is maintained in CVS version control.</span>
+0255 <span class="comment">%</span>
+0256 <span class="comment">%    $Log: vds.m,v $</span>
+0257 <span class="comment">%    Revision 1.5  2004/04/27 18:08:44  brian</span>
+0258 <span class="comment">%    Changed FOV to a polynomial of unlimited length,</span>
+0259 <span class="comment">%    and hopefully changed all comments accordingly.</span>
+0260 <span class="comment">%    Also moved sub-functions into vds.m so that</span>
+0261 <span class="comment">%    no other .m files are needed.</span>
+0262 <span class="comment">%</span>
+0263 <span class="comment">%    Revision 1.2  2003/05/29 23:02:21  brian</span>
+0264 <span class="comment">%    minor edits</span>
+0265 <span class="comment">%</span>
+0266 <span class="comment">%    Revision 1.1  2002/03/28 01:03:20  bah</span>
+0267 <span class="comment">%    Added to CVS</span>
+0268 <span class="comment">%</span>
+0269 <span class="comment">%</span>
+0270 <span class="comment">% ===========================================================</span>
+0271 
+0272 
+0273     
+0274 <a name="_sub1" href="#_subfunctions" class="code">function [q2,r2] = findq2r2(smax,gmax,r,r1,T,Ts,N,Fcoeff,rmax)</a>
+0275 
+0276 gamma = 4258;            <span class="comment">% Hz/G</span>
+0277 
+0278 F = 0;        <span class="comment">% FOV function value for this r.</span>
+0279 dFdr = 0;        <span class="comment">% dFOV/dr for this value of r.</span>
+0280 <span class="keyword">for</span> rind = 1:length(Fcoeff)
+0281     F = F+Fcoeff(rind)*(r/rmax)^(rind-1);
+0282     <span class="keyword">if</span> (rind&gt;1)
+0283         dFdr = dFdr + (rind-1)*Fcoeff(rind)*(r/rmax)^(rind-2)/rmax;
+0284     <span class="keyword">end</span>;
+0285 <span class="keyword">end</span>;
+0286 
+0287 GmaxFOV = 1/gamma /F/Ts;        <span class="comment">% FOV limit on G</span>
+0288 Gmax = min(GmaxFOV,gmax);    <span class="comment">%</span>
+0289 
+0290 maxr1 = sqrt((gamma*Gmax)^2 / (1+(2*pi*F*r/N)^2));  
+0291 
+0292 
+0293 <span class="keyword">if</span> (r1 &gt; maxr1)            
+0294             <span class="comment">% Grad amplitude limited.  Here we</span>
+0295             <span class="comment">% just run r upward as much as we can without</span>
+0296             <span class="comment">% going over the max gradient.</span>
+0297     r2 = (maxr1-r1)/T; 
+0298     <span class="comment">%tt = sprintf('Grad-limited r=%5.2f, r1=%f',r,r1);</span>
+0299     <span class="comment">%disp(tt);</span>
+0300 
+0301 <span class="keyword">else</span>
+0302 
+0303     twopiFoN = 2*pi*F/N;
+0304     twopiFoN2 = twopiFoN^2;
+0305 
+0306     <span class="comment">%    A,B,C are coefficents of the equation which equates</span>
+0307     <span class="comment">%     the slew rate calculated from r,r1,r2 with the</span>
+0308     <span class="comment">%    maximum gradient slew rate.</span>
+0309     <span class="comment">%</span>
+0310     <span class="comment">%    A*r2*r2 + B*r2 + C  =  0</span>
+0311     <span class="comment">%</span>
+0312     <span class="comment">%    A,B,C are in terms of F,dF/dr,r,r1, N and smax.</span>
+0313     <span class="comment">%</span>
+0314 
+0315 
+0316     A = 1+twopiFoN2*r*r;
+0317     B = 2*twopiFoN2*r*r1*r1 + 2*twopiFoN2/F*dFdr*r*r*r1*r1;
+0318     C = twopiFoN2^2*r*r*r1^4 + 4*twopiFoN2*r1^4 + (2*pi/N*dFdr)^2*r*r*r1^4 + 4*twopiFoN2/F*dFdr*r*r1^4 - (gamma)^2*smax^2;
+0319 
+0320 
+0321     [rts] = <a href="#_sub2" class="code" title="subfunction [roots] = qdf(a,b,c)">qdf</a>(A,B,C);    <span class="comment">% qdf = Quadratic Formula Solution.</span>
+0322     r2 = real(rts(1));    <span class="comment">% Use bigger root.  The justification</span>
+0323                 <span class="comment">% for this is not entirely clear, but</span>
+0324                 <span class="comment">% in practice it seems to work, and</span>
+0325                 <span class="comment">% does NOT work with the other root.</span>
+0326 
+0327 
+0328 
+0329 
+0330     <span class="comment">% Calculate resulting slew rate and print an error</span>
+0331     <span class="comment">% message if it is too large.</span>
+0332     
+0333     slew = 1/gamma*(r2-twopiFoN2*r*r1^2 + i*twopiFoN*(2*r1^2 + r*r2 + dFdr/F*r*r1^2));
+0334     <span class="comment">%tt = sprintf('Slew-limited r=%5.2d  SR=%f G/cm/s',r,abs(slew));</span>
+0335     <span class="comment">%disp(tt);</span>
+0336     sr = abs(slew)/smax;
+0337 
+0338     <span class="keyword">if</span> (abs(slew)/smax &gt; 1.01)
+0339         tt = sprintf(<span class="string">'Slew violation, slew = %d, smax = %d, sr=%f, r=%f, r1=%f'</span>,round(abs(slew)),round(smax),sr,r,r1);
+0340         disp(tt);
+0341     <span class="keyword">end</span>;
+0342 
+0343 <span class="keyword">end</span>;
+0344 
+0345 
+0346 <span class="comment">%    Calculate q2 from other pararmeters.</span>
+0347 
+0348 q2 = 2*pi/N*dFdr*r1^2 + 2*pi*F/N*r2;
+0349 
+0350 
+0351 
+0352 
+0353 
+0354 
+0355 <span class="comment">%    function [r1,r2] = qdf(a,b,c)</span>
+0356 <span class="comment">%</span>
+0357 <span class="comment">%    Outputs quadratic roots of ax^2+bx+c = 0.</span>
+0358 <span class="comment">%</span>
+0359 
+0360 
+0361 <span class="comment">% =============== CVS Log Messages ==========================</span>
+0362 <span class="comment">%    This file is maintained in CVS version control.</span>
+0363 <span class="comment">%</span>
+0364 <span class="comment">%    $Log: vds.m,v $</span>
+0365 <span class="comment">%    Revision 1.5  2004/04/27 18:08:44  brian</span>
+0366 <span class="comment">%    Changed FOV to a polynomial of unlimited length,</span>
+0367 <span class="comment">%    and hopefully changed all comments accordingly.</span>
+0368 <span class="comment">%    Also moved sub-functions into vds.m so that</span>
+0369 <span class="comment">%    no other .m files are needed.</span>
+0370 <span class="comment">%</span>
+0371 <span class="comment">%    Revision 1.1  2002/03/28 01:27:46  bah</span>
+0372 <span class="comment">%    Added to CVS</span>
+0373 <span class="comment">%</span>
+0374 <span class="comment">%</span>
+0375 <span class="comment">% ===========================================================</span>
+0376 
+0377 
+0378 <a name="_sub2" href="#_subfunctions" class="code">function [roots] = qdf(a,b,c)</a>
+0379 
+0380 d = b^2 - 4*a*c;
+0381 
+0382 roots(1) = (-b + sqrt(d))/(2*a);
+0383 roots(2) = (-b - sqrt(d))/(2*a);
+0384 
+0385 
+0386 
+0387 
+0388 
+0389 
+0390 
+0391 
+0392 
+0393</pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

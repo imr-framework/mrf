@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of gradient_lobe</title>
+  <meta name="keywords" content="gradient_lobe">
+  <meta name="description" content="This scripts calculates gradient lobe with a initial gradient value">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- ../../menu.html mrf --><!-- ../menu.html Sequence_Design --><!-- menu.html Function -->
+<h1>gradient_lobe
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>This scripts calculates gradient lobe with a initial gradient value</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function grad = gradient_lobe(ga_des,dt,gmax,smax,g_off,verb) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> This scripts calculates gradient lobe with a initial gradient value 
+ for desired area. Results in triangluar or trapezoidal gradient shape.
+ INPUT
+   grad = gradient_lobe(ga_des,dt,gmax,smax,g_off)
+  ga_des  Desired area of gradient lobe         [s*T/m]
+      dt  Sampling dwell time                   [s]
+    gmax  Maximum gradient strength             [T/m]
+    smax  Maximum slew rate                     [T/m/s]
+   g_off  Offset gradient value (default=0)     [T/m]
+
+ OUTPUT
+    grad  Gradient waveform                     [T/m]
+
+ Created 7/2018  Rolf Schulte
+ Modified 7/2019 Enlin Qian</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="design_spiral_pulseq.html" class="code" title="function [k,dcf,t,ind,out,grad]=design_spiral_pulseq(fov,npix,arms,ksamp,fname,gmax,smax,nucleus,acq_round2n,do_rot_file,balanced)">design_spiral_pulseq</a>	This script designs a spiral with delayed acq for fast CSI</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function grad = gradient_lobe(ga_des,dt,gmax,smax,g_off,verb)</a>
+0002 <span class="comment">% This scripts calculates gradient lobe with a initial gradient value</span>
+0003 <span class="comment">% for desired area. Results in triangluar or trapezoidal gradient shape.</span>
+0004 <span class="comment">% INPUT</span>
+0005 <span class="comment">%   grad = gradient_lobe(ga_des,dt,gmax,smax,g_off)</span>
+0006 <span class="comment">%  ga_des  Desired area of gradient lobe         [s*T/m]</span>
+0007 <span class="comment">%      dt  Sampling dwell time                   [s]</span>
+0008 <span class="comment">%    gmax  Maximum gradient strength             [T/m]</span>
+0009 <span class="comment">%    smax  Maximum slew rate                     [T/m/s]</span>
+0010 <span class="comment">%   g_off  Offset gradient value (default=0)     [T/m]</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% OUTPUT</span>
+0013 <span class="comment">%    grad  Gradient waveform                     [T/m]</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% Created 7/2018  Rolf Schulte</span>
+0016 <span class="comment">% Modified 7/2019 Enlin Qian</span>
+0017 <span class="keyword">if</span> (nargin&lt;1), help(mfilename); <span class="keyword">return</span>; <span class="keyword">end</span>
+0018 
+0019 <span class="keyword">if</span> ~exist(<span class="string">'g_off'</span>,<span class="string">'var'</span>), g_off = []; <span class="keyword">end</span>
+0020 <span class="keyword">if</span> isempty(g_off),        g_off = 0; <span class="keyword">end</span>; g_off = round(g_off,2);
+0021 <span class="keyword">if</span> ~exist(<span class="string">'verb'</span>,<span class="string">'var'</span>),  verb = []; <span class="keyword">end</span>
+0022 <span class="keyword">if</span> isempty(verb),         verb = false; <span class="keyword">end</span>
+0023 
+0024 <span class="keyword">if</span> gmax&lt;0, error(<span class="string">'gmax(=%g)&lt;0'</span>,gmax); <span class="keyword">end</span>
+0025 <span class="keyword">if</span> smax&lt;0, error(<span class="string">'smax(=%g)&lt;0'</span>,smax); <span class="keyword">end</span>
+0026 <span class="keyword">if</span> abs(g_off)&gt;gmax, error(<span class="string">'abs(g_off)(=%g)&gt;gmax(=%g)'</span>,abs(g_off),gmax); <span class="keyword">end</span>
+0027 
+0028 
+0029 <span class="comment">%% calculate positive lobes; invert when necessary</span>
+0030 sgn    = sign(ga_des);
+0031 ga_des = abs(ga_des);
+0032 g_off  = sgn*g_off;
+0033 
+0034 gm = sqrt(smax*abs(ga_des)+0.5*g_off^2);    <span class="comment">% nominal gradient strength</span>
+0035 <span class="keyword">if</span> gm&lt;g_off        <span class="comment">% if offset larger, invert again for lobe pointing up</span>
+0036      sgn = -sgn;
+0037      ga_des = -ga_des;
+0038      g_off = -g_off;
+0039      gm = sqrt(-smax*abs(ga_des)+0.5*g_off^2);
+0040 <span class="keyword">end</span>
+0041 <span class="keyword">if</span> verb, fprintf(<span class="string">'gm=%g; g_off=%g\n'</span>,gm,g_off); <span class="keyword">end</span>
+0042 
+0043 
+0044 <span class="comment">%% differentiate between trapezoids and triangles</span>
+0045 <span class="keyword">if</span> gm&gt;gmax    <span class="comment">% trapezoid: add gradient plateau in middle</span>
+0046     <span class="keyword">if</span> verb, fprintf(<span class="string">'Constructing trapezoid\n'</span>); <span class="keyword">end</span>
+0047     
+0048     <span class="comment">% points for ramp up and down</span>
+0049     n_up   = ceil((gmax-g_off)/smax/dt)+1;
+0050     n_down = ceil(gmax/smax/dt)+1;
+0051     
+0052     <span class="comment">% area for ramp up and down</span>
+0053     ga_up   = 0.5*(gmax^2-g_off^2)/smax;
+0054     ga_down = 0.5*gmax^2/smax;
+0055     
+0056     n_plt = ceil((ga_des-(ga_up+ga_down))/gmax/dt);
+0057     <span class="comment">% gmax_act = gmax;</span>
+0058 <span class="keyword">else</span>          <span class="comment">% triangular gradient</span>
+0059     <span class="keyword">if</span> verb, fprintf(<span class="string">'Constructing triangle\n'</span>); <span class="keyword">end</span>
+0060     n_up   = ceil((gm-g_off)/smax/dt);
+0061     <span class="keyword">if</span> n_up==1
+0062         warning(<span class="string">'n_up==1; setting to 0'</span>);
+0063         n_up = 0;
+0064     <span class="keyword">else</span>
+0065         n_up = n_up+1;
+0066     <span class="keyword">end</span>
+0067     n_down = ceil(gm/smax/dt)+1;
+0068     <span class="comment">% gmax_act = gm;</span>
+0069     
+0070     <span class="keyword">if</span> n_up&lt;0, warning(<span class="string">'n_up&lt;0'</span>); <span class="keyword">end</span>
+0071     
+0072     n_plt = 0;
+0073 <span class="keyword">end</span>
+0074 
+0075 <span class="comment">%% calculate exact gmax_act to prevent rounding errors</span>
+0076 gmax_act = (2*ga_des/dt-n_up*g_off)/(n_up+n_down+2*n_plt);
+0077 
+0078 <span class="comment">%% construct actual gradient waveform</span>
+0079 grad = sgn*[linspace(g_off,gmax_act,n_up),<span class="keyword">...</span>
+0080     gmax_act*ones(1,n_plt),<span class="keyword">...</span>
+0081     linspace(gmax_act,0,n_down)];
+0082 
+0083 <span class="comment">%% check waveform</span>
+0084 ga_act = sum(grad)*dt;
+0085 ga_err = (sgn*ga_des-ga_act)/ga_des;
+0086 smax_act = max(abs(diff(grad)))/dt;
+0087 <span class="keyword">if</span> smax_act&gt;smax, warning(<span class="string">'smax_act(=%g)&gt;smax(=%g)'</span>,smax_act,smax); <span class="keyword">end</span>
+0088 <span class="keyword">if</span> gmax_act&gt;gmax, warning(<span class="string">'gmax_act(=%g)&gt;gmax(=%g)'</span>,gmax_act,gmax); <span class="keyword">end</span>
+0089 <span class="keyword">if</span> abs(ga_err)&gt;1d-6
+0090     warning(<span class="string">'abs(ga_err(=%g))&gt;1d-6; ga_des=%g; ga_act=%g'</span>,<span class="keyword">...</span>
+0091         ga_err,ga_des,ga_act); 
+0092 <span class="keyword">end</span>
+0093 
+0094 <span class="comment">%% print info</span>
+0095 <span class="keyword">if</span> verb,
+0096     fprintf(<span class="string">'gmax=%g; gmax_act=%g [T/m]\n'</span>,gmax,gmax_act);
+0097     fprintf(<span class="string">'smax=%g; smax_act=%g [T/m]\n'</span>,smax,smax_act);    
+0098     fprintf(<span class="string">'n_up=%g; n_plt=%g; n_down=%g\n'</span>,n_up,n_plt,n_down);
+0099     fprintf(<span class="string">'ga_des=%g; ga_act=%g; err=%g[%%]\n'</span>,<span class="keyword">...</span>
+0100         sgn*ga_des,ga_act,ga_err*100);
+0101 <span class="keyword">end</span>
+0102 
+0103 <span class="keyword">end</span>   <span class="comment">% end main function gradient_lobe.m</span></pre></div>
+<hr><address>Generated on Mon 26-Aug-2019 16:44:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>
