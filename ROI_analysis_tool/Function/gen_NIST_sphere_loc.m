@@ -5,9 +5,10 @@ function NIST_sphere_loc = gen_NIST_sphere_loc(map_type, map_size, fov, Sphere1_
 %   map_type  type of map (T1 or T2)
 %   map_size  size of map, for example, 128 means the map size is 128x128
 %        fov  field of view                                  [mm]
-%Sphere1_loc  centers of sphere 1 (x, y)
+%   Sphere1_loc  centers of sphere 1 (x, y)
+%
 % OUTPUT
-%NIST_sphere_loc  sphere locations for all spheres
+%   NIST_sphere_loc  sphere locations for all spheres
 %
 % 7/2019 Enlin Qian
 % # Copyright of the Board of Trustees of Columbia University in the City of New York

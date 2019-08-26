@@ -9,8 +9,8 @@ function sphere_par = NIST_ROI_ana(map_data, map_type, map_size, fov)
 %        fov  field of view                                  [mm]
 % 
 % OUTPUT
-% sphere_par  circle parameters. It has four fields which contain sphere
-%             locations, radius, mean, and std in correct order. 
+%   sphere_par  circle parameters. It has four fields which contain sphere
+%               locations, radius, mean, and std in correct order. 
 %
 % 7/2019 Enlin Qian
 % # Copyright of the Board of Trustees of Columbia University in the City of New York

@@ -7,7 +7,7 @@ function NIST_std_par = gen_NIST_std_par(map_type, map_size, fov)
 %        fov  field of view                                  [mm]
 %
 % OUTPUT
-% phan_std_par  standard phantom parameters.
+%   phan_std_par  standard phantom parameters.
 %
 % 7/2019 Enlin Qian
 % # Copyright of the Board of Trustees of Columbia University in the City of New York
