@@ -1,15 +1,15 @@
 function dcf_out = voronoi_area(k)
-%dcf = voronoi_area(k)
-%  Calculate the area (density) of a k-space trajectory via Voronoi
-%  triangulation
+% Calculate the area (density) of a k-space trajectory via Voronoi
+% triangulation
+% INPUT
+%      k  k-space trajectory  ([-0.5 0.5]*res)
 %
-%   k     k-space trajectory  ([-0.5 0.5]*res)
-%   dcf  area assosiated with each k-space point
+% OUTPUT
+%dcf_out  area assosiated with each k-space point
 %
 % Created Florian Wiesinger
 % Modified 7/2006 Rolf Schulte
-%
-% See also VORONOIN.
+
 if (nargin<1), help(mfilename); dcf = NaN; return; end;
 if size(k,1)~=1, error('size(k,1)~=1'); end
 

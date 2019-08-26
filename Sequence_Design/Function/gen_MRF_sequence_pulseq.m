@@ -1,8 +1,8 @@
 function [kshot, dcf, ind, TR_all, FA_all, TE_all] = gen_MRF_sequence_pulseq()
-%This script uses pulseq to generate a sequence proposed in Jiang's paper[1]
+% This script uses pulseq to generate a sequence proposed in Jiang's paper[1]
 % INPUT
 %       None  User does not need to input any parameter. All parameters for
-%             the sueqnece is pre set. If user wants to customize their own
+%             the sueqnece are pre set. If user wants to customize their own
 %             MRF sequence, please modify the double for loops starting at
 %             line 98 to add different blocks. 
 % 
@@ -14,9 +14,11 @@ function [kshot, dcf, ind, TR_all, FA_all, TE_all] = gen_MRF_sequence_pulseq()
 %     FA_all  All FAs used for the sequence.
 %     TE_all  All TEs used for the sequence. 
 
-%[1] Jiang Y, Ma D, Seiberlich N, Gulani V, Griswold M. MR fingerprinting using
-%fast imaging with steady state precession (FISP) with spiral readout. Magn Reson Med.
-%2015;74(6):spcone-spcone. doi:10.1002/mrm.26048
+% 7/2019 Enlin Qian
+% # Copyright of the Board of Trustees of Columbia University in the City of New York
+% [1] Jiang Y, Ma D, Seiberlich N, Gulani V, Griswold M. MR fingerprinting using
+% fast imaging with steady state precession (FISP) with spiral readout. Magn Reson Med.
+% 2015;74(6):spcone-spcone. doi:10.1002/mrm.26048
 
 %% Set system limits
 gamma = 42576000; % in Hz %Determined from Pulseq - do not change,%Hz/T

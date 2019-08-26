@@ -1,20 +1,20 @@
 function image_data_final_Complex = MRF_recon()
-%This script uses sliding window method and complex coil combination to
-%reconstruct .dat raw data and trajectory file. This script requires MiRT
-%toolbox, visit their websites for more information:
-%https://web.eecs.umich.edu/~fessler/code/
-% Input
+% This script uses sliding window method and complex coil combination to
+% reconstruct .dat raw data and trajectory file. This script requires MiRT
+% toolbox, visit their websites for more information:
+% https://web.eecs.umich.edu/~fessler/code/
+% IUPUT
 %       None  User does not need to input any parameter. The script will
 %       ask for raw data and trajectory file. The trajectory file is
 %       attached as K_Traj4rec.matin Sample_Data folder.
 %
 % OUTPUT
-%image_data_final_Complex   Reconstructed images.
-
-%some variables: dim1: size of original raw data
-%dim2: size of concatenated raw data
-%dim3: size of ktrajectory data
-%dim4: size of concatenated raw data after cutting rewinders
+% image_data_final_Complex   Reconstructed images.
+%
+% some variables: dim1: size of original raw data
+% dim2: size of concatenated raw data
+% dim3: size of ktrajectory data
+% dim4: size of concatenated raw data after cutting rewinders
 
 
 %% This stage takes in a .dat raw data file and outputs .mat file.

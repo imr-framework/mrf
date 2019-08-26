@@ -1,9 +1,7 @@
 function [k,dcf,t,ind,out,grad]=design_spiral_pulseq(fov,npix,arms,ksamp,...
     fname,gmax,smax,nucleus,acq_round2n,do_rot_file,balanced)
-%DESIGN_SPIRAL Design a spiral with delayed acq for fast CSI
-%[k,dcf,t,ind,out,grad]=design_spiral(fov,npix,arms,ksamp,...
-%    fname,gmax,smax,nucleus,acq_round2n,do_rot_file,crush)
-%
+% This script designs a spiral with delayed acq for fast CSI
+% INPUT
 %        fov  field of view                                  [mm]
 %       npix  #pixels (Cartesian resolution after gridding)
 %       arms  #spatial interleaves                    (1)
@@ -18,6 +16,7 @@ function [k,dcf,t,ind,out,grad]=design_spiral_pulseq(fov,npix,arms,ksamp,...
 %             waveform file & rotate via vap_phiXX.fdl (false)
 %   balanced  Balancing gradient area                 (true)
 %
+% OUTPUT
 %          k  k-space trajectory  [-0.5..0.5]
 %        dcf  density compensation function (calculated with vornoi_area)
 %          t  time  (nexc x recon-pts)
@@ -25,7 +24,8 @@ function [k,dcf,t,ind,out,grad]=design_spiral_pulseq(fov,npix,arms,ksamp,...
 %        out  output structure of wrt_wavs
 %       grad  gradient waveform [T/m] with dt=10us 
 %
-% 7/2018 Rolf Schulte
+% Created 7/2018 Rolf Schulte
+% Modified 7/2019 Enlin Qian
 if (nargin<1), help(mfilename); return; end
 
 

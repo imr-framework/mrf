@@ -1,10 +1,12 @@
 function g = gyrogamma(nucleus)
-%GYROGAMMA  Gyromagnetic ratio of various spins (in radians)
-% g = gyrogamma(nucleus)
+% This scripts get gyromagnetic ratio of various spins (in radians)
+% INPUT    
+%  nucleus 'h1';'h2';'he3';'c13';'n15';'f19';'na23';'p31';'xe129';...
+%          '13c1h': ratio gyrogamma('13C')/gyrogamma('1h')
+%          'h1' is default
+%
+% OUTPUT
 %        g [rad/(s T)]
-%  nucleus = 'h1';'h2';'he3';'c13';'n15';'f19';'na23';'p31';'xe129';...
-%            '13c1h': ratio gyrogamma('13C')/gyrogamma('1h')
-%            'h1' is default
 %
 % Literature:
 %        Levitt; "Spin Dynamics"; Wiley

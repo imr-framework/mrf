@@ -1,16 +1,19 @@
 function grad = gradient_lobe(ga_des,dt,gmax,smax,g_off,verb)
-% GRADIENT_LOBE Calculate gradient lobe with a initial gradient value 
+% This scripts calculates gradient lobe with a initial gradient value 
 % for desired area. Results in triangluar or trapezoidal gradient shape.
-%
+% INPUT
 %   grad = gradient_lobe(ga_des,dt,gmax,smax,g_off)
 %  ga_des  Desired area of gradient lobe         [s*T/m]
 %      dt  Sampling dwell time                   [s]
 %    gmax  Maximum gradient strength             [T/m]
 %    smax  Maximum slew rate                     [T/m/s]
 %   g_off  Offset gradient value (default=0)     [T/m]
+%
+% OUTPUT
 %    grad  Gradient waveform                     [T/m]
 %
-% 7/2018  Rolf Schulte
+% Created 7/2018  Rolf Schulte
+% Modified 7/2019 Enlin Qian
 if (nargin<1), help(mfilename); return; end
 
 if ~exist('g_off','var'), g_off = []; end
