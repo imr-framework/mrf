@@ -2,12 +2,15 @@ function out = MRF_Dict_Matching(dict, data)
 %% This function is a re-implementation based on P. Gomez's code
 %This script uses vector dot product to find the most similar entry inside
 %a dictionary and retrieve the parameters from that dictionary.
-% Input
+% INPUT
 %  dict  Dictionary file
 %  data  Reconstructed data file
+% 
 % OUTPUT
 %   out  An output structure that contains T1 and T2 maps 
-
+%
+% 7/2019 Enlin Qian
+% # Copyright of the Board of Trustees of Columbia University in the City of New York
 %% Reshape data
 iz = 1;
 [ix,iy,T] = size(data);
