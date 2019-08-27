@@ -4,7 +4,9 @@
 <h1 align="center"> Open Source MRF </h1> <br>
 
 Open Source MRF is a Matlab based software package which enables vendor neutral, fast prototyping of magnetic resonance fingerprinting using Pulseq. It is supported by open-soure standards. 
+
 Magnetic resonance fingerprinting is a framework that allows for simultaneous quantification of tissue properties and hence is a significant tool to understand multi-vendor multi-site variability. However, a vendor-neutral, open soure implementation of MRF has not been developed to the best of our knowlegde. In this work, we develop the package to enable comparisons between two sites with two vendors. 
+
 Open Source MRF consists of five modules. Sequence design, image reconstruction, dictionary simulation, dictionary matching, and ROI analysis.
 
 **Please note:** You need to install Pulseq and Michigan Image Reconstruction Toolbox (MIRT) in your system for the package to run. Visit [Pulseq](http://pulseq.github.io/) and [MIRT](https://web.eecs.umich.edu/~fessler/code/) for more information.   
