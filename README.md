@@ -38,6 +38,8 @@ This package contains five different parts. To use the package, please pull the 
 ## Demo
 To test the package, a demo script can be found at **mrf/demo_MRF.m**. This script generates a sequence, then read a sample data,       reconstruct the data. A dictionary is generated and dictionary matching is performed. Then ROI analysis is done to provide T1 and T2 values for each spheres.  
 
+In addition to the overall demo script, each module can be tested by itself. The demo script can be located under each module, which will help verify the correctness of the module. 
+
 ## Reference
 [1] Jiang Y, Ma D, Seiberlich N, Gulani V, Griswold M. MR fingerprinting using fast imaging with steady state precession (FISP) with spiral readout. Magn Reson Med. 2015;74(6):spcone-spcone. doi:10.1002/mrm.26048
 
