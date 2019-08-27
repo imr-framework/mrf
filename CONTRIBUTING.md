@@ -27,7 +27,7 @@ Note that "Version" refers to the Open Source MRF Package release you developed 
 
 **Documenting source code**
 
-Please add a top-level description of code functionality in each script. In addition, document every class and method in your source code. 
+Please add a top-level description of code functionality in each script. In addition, document all inputs and outputs and add a line of description for each input and output. 
 
 ## Reporting Issues
 Please report issues in Github Issues, following the given format for either "Bug Report" or "Feature Request". 
