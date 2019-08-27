@@ -20,7 +20,7 @@ This package contains five different parts. To use the package, please pull the 
 3. The user should be able play the generated .seq file on a scanner with Pulseq interpreter installed. This sequence has been verified    on a scanner by the author. 
 
 #### Image Reconstruction
-1. Run **Image_Reconstruction/MRF_recon.m**
+1. Call **Image_Reconstruction/MRF_recon.m**
 2. The script lets user select raw data file (.dat) from scanner and trajectory file (.mat) and reconstruct the image using sliding         window method and complex channel combination [2].  
 
 #### EPG Dictionary Simulation
