@@ -1,3 +1,5 @@
-function Echo_Final = Var_TE(echoes, TE_all, T2)
-Echo_Final = echoes(:,2).*exp(-TE_all'/T2);
+function Echo_Final = Var_TE(om_store, TEs, T2)
+F_plus = cellfun(@(v)v(1), om_store);
+F_plus = F_plus(1:3:end);
+Echo_Final = F_plus.*exp(-TEs./T2);
 end
