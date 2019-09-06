@@ -80,7 +80,7 @@ for n5 = 1: num_dict_entry
     dict_norm(n5) = norm(dict_SW(n5,:));
     dict_SW_norm(n5, :) = dict_SW(n5, :) / dict_norm(n5);
 end
-dict_SW_norm = dict_SW_norm(:, 2:1001);
+dict_SW_norm = dict_SW_norm(:, 2:end);
 MRF_dict.dict_SW_norm = dict_SW_norm;
 clear dict_SW_norm dict_SW
 
