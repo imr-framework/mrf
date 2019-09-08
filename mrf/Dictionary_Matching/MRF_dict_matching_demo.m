@@ -14,4 +14,4 @@
 addpath(genpath('.'));
 data = image_data_final_Complex;
 clear image_data_final_Complex;
-out = MRF_Dict_Matching(dict, data);
+Par_map = MRF_Dict_Matching(MRF_dict, data);

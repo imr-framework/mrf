@@ -1,101 +1,57 @@
-function out = MRF_Dict_Matching(dict, data)
-%% This function is a re-implementation based on P. Gomez's code
-%This script uses vector dot product to find the most similar entry inside
-%a dictionary and retrieve the parameters from that dictionary.
+function Par_map = MRF_Dict_Matching(MRF_dict, data)
+
+% This script uses vector dot product to find the most similar entry inside
+% a dictionary and retrieve the parameters from that dictionary.
 % INPUT
-%  dict  Dictionary file
-%  data  Reconstructed data file
+%  MRF_dict  Dictionary file
+%      data  Reconstructed data file
 % 
 % OUTPUT
-%   out  An output structure that contains T1 and T2 maps 
+%   Par_map  An output structure that contains T1 and T2 maps 
 %
 % 7/2019 Enlin Qian
 % # Copyright of the Board of Trustees of Columbia University in the City of New York
-%% Reshape data
-iz = 1;
-[ix,iy,T] = size(data);
-datadims = [ix,iy,T];
-N = ix*iy*iz;
-x = reshape(data,[N,T]);
-mask = ones(datadims(1:end-1)) > 0;
-x = single(x(mask>0,:));
 
-%% Reading in dictionary and checking fields in dictionary
-D = dict.D;
-if isfield(dict,'normD'); normD = dict.normD; end
-if ~isfield(dict,'lut')
-    error('dict.lut required for parameter estimation');
-end
-if ~exist('normD','var')
-    warning('normD not found, normalizing dictionary \n');
-    normD = zeros(1,size(D,1));
-    for l = 1:size(D,1)
-        normD(l)=norm(D(l,:));
-        D(l,:)=D(l,:)/normD(l);
-    end
-    D(isnan(D))=0;
-end
+%% Flatten image data
+image_size = size(data);
+num_pixel = image_size(1)*image_size(2);
+num_timepts = image_size(3);
+data_flat = reshape(data,[num_pixel,num_timepts]);
+mask = ones(image_size(1:end-1)) > 0;
+data_flat = data_flat(mask>0,:);
+data_size = size(data_flat);
 
-for n1 = 1:size(D,1)
-    temp1 = D(n1,:);
-    temp2 = x(n1,:);
-    temp1 = temp1./max(temp1(:));
-    temp2 = temp2./max(temp2(:));
-    D(n1,:) = temp1;
-    x(n1,:) = temp2;
-end
-
-%% Setting up parameters for dic matching
-S = whos('x');
-dataBytes = S.bytes;
-mem = memory;
-percentageOfUse = 0.6;
-memPercentage = mem.MemAvailableAllArrays * percentageOfUse;
-blockSize = memPercentage/dataBytes;
+%% Reading in dictionary 
+dict = MRF_dict.dict_SW_norm;
+dict_size = size(dict);
 
 %% Dictionary Matching
-blockSize = min(max(floor(blockSize/size(D,1)),1),size(x,1));
-iter = ceil(size(x,1)/blockSize);
-mt = zeros(size(x,1),1);
-dm = zeros(size(x,1),1);
-pd = zeros(size(x,1),1);
-X = zeros(size(x));
-fprintf('Matching data \n');
-maxDict =  max(dict.D,[],2);
-dtemp = abs(dict.D./maxDict);
-for i = 1: iter
-    if(mod(i,1000) ==0)
-        disp(i)
+fprintf('Dictionary match starts \n');
+dict_max = max(dict,[],2);
+dict_temp = abs(dict./dict_max);
+data_max = max(data_flat,[],2);
+data_temp = abs(data_flat./data_max);
+ip = zeros(1, dict_size(1));
+match_point = zeros(data_size(1),1);
+dict_match = zeros(data_size(1),1);
+n3 = 1;
+dict_progress = ceil(((1:1:data_size(1)*dict_size(1))./(data_size(1)*dict_size(1)))*100);
+for n1 = 1:data_size(1)
+    for n2 = 1:dict_size(1)
+        if mod(n3, floor((data_size(1)*dict_size(1))/100))==0
+            fprintf('%d percent has been completed. \n' ,dict_progress(n3));
+        end
+        ip(n2) = sum(abs(dict_temp(n2, :).^2 - data_temp(n1, :).^2));
+        n3=n3+1;
     end
-    if i<iter
-        cind = (i-1)*blockSize+1:i*blockSize;
-    else
-        cind = (i-1)*blockSize+1:size(x,1);
-    end
-    xtemp = x(cind,:)./max(abs(x(cind,:)));
-    ip = zeros(1,size(D,1));
-    for m = 1:size(D,1)
-        ip(m) = sum(abs(dtemp(m, :).^2 - xtemp.^2));
-    end
-    [mt(cind),dm(cind)] = min(abs(ip.'),[],1);
-    if(mod(i, 100)==0)
-        disp(i);
-        disp(dm(cind));
-    end
+    [match_point(n1),dict_match(n1)] = min(abs(ip.'),[],1);
 end
-clear match;
-clear dictentry;
 
 %% Generate output
-Q=6;
-dm(dm==0) =1;
-dict.lut(1,:) =0;
-
-qmap = zeros(N,Q,'single');
-qmap(mask>0,:) = dict.lut(dm,:);
-qmap(isnan(qmap)) = 0; %remove possible NaN from infeasible search window
-out.qmap = reshape(qmap,[datadims(1:end-1),Q]);
-out.mask = mask;
-figure; imagesc(abs(squeeze(out.qmap(:,:,1)))); axis equal tight; colormap hot; title('T1 map');
-figure; imagesc(abs(squeeze(out.qmap(:,:,2)))); axis equal tight; colormap hot; title('T2 map');
+Par_map.T1_map = MRF_dict.lut(dict_match,1);
+Par_map.T1_map = reshape(Par_map.T1_map,[data_size(1), data_size(2)]); 
+Par_map.T2_map = MRF_dict.lut(dict_match,2);
+Par_map.T2_map = reshape(Par_map.T2_map,[data_size(1), data_size(2)]); 
+figure; imagesc(abs(squeeze(Par_map.T1_map))); axis equal tight; colormap hot; title('T1 map');
+figure; imagesc(abs(squeeze(Par_map.T2_map))); axis equal tight; colormap hot; title('T2 map');
 end
