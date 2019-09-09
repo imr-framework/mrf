@@ -1,7 +1,7 @@
 <p align="center"> <a>
     <img title="Open Source MRF LOGO" src="https://github.com/imr-framework/imr-framework.github.io/blob/master/img/portfolio/mrf.png" width="225">
   </a></p>
-<h1 align="center"> Open Source Magnetic Resonance Fingerprinting (OMEGA) </h1> <br>
+<h1 align="center"> Open Source Magnetic Resonance Fingerprinting Package (OMEGA) </h1> <br>
 
 Open Source MRF is a Matlab based software package which enables vendor neutral, fast prototyping of magnetic resonance fingerprinting using Pulseq. It is supported by open-soure standards. 
 
