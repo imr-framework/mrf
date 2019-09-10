@@ -12,6 +12,5 @@
 
 %% Image Reconstruction
 addpath(genpath('.'));
-data = image_data_final_Complex;
-clear image_data_final_Complex;
-Par_map = MRF_Dict_Matching(MRF_dict, data);
+load('dict_example.mat')
+Par_map = MRF_Dict_Matching(MRF_dict, image_data_final_Complex);

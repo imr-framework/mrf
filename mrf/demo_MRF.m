@@ -23,5 +23,7 @@ kshots=48;
 MRF_dict = gen_MRF_dict(TR_all, TE_all, FA_all, T1, T2, TI, kshots);
 
 %% Dictionary Matching
+load('dict_example.mat')
+Par_map = MRF_Dict_Matching(MRF_dict, image_data_final_Complex);
 
 %% ROI Analysis Tool
