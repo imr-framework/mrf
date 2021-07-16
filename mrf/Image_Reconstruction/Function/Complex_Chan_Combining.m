@@ -27,7 +27,7 @@ end
 Rs = permute(Rs,[3,4,1,2]);
 Rs = Rs(:,:,:);
 coil_filter = zeros(size(Rs,3),C);
-for n4 = 1:size(Rs,3)
+parfor n4 = 1:size(Rs,3)
     [U,~] = svd(squeeze(Rs(:,:,n4)));
     coil_filter(n4,:) = U(:,1);
 end
