@@ -13,6 +13,7 @@ function Par_map = MRF_Dict_Matching(MRF_dict, data)
 % # Copyright of the Board of Trustees of Columbia University in the City of New York
 
 %% Flatten image data
+data = abs(data);
 image_size = size(data);
 num_pixel = image_size(1)*image_size(2);
 num_timepts = image_size(3);
@@ -22,7 +23,7 @@ data_flat = data_flat(mask>0,:);
 data_size = size(data_flat);
 
 %% Reading in dictionary
-dict = MRF_dict.dict_SW_norm;
+dict = abs(MRF_dict.dict_SW_norm);
 dict_size = size(dict);
 
 %% Dictionary Matching Data Preparation
@@ -45,7 +46,7 @@ for n1 = 1:data_size(1)
     [match_point(n1),dict_match(n1)] = min(abs(ip),[],1);
 end
 
-%% Generate output
+%% Generate Output
 Par_map.T1_map = reshape(MRF_dict.lut(dict_match,1), [image_size(1), image_size(2)]);
 Par_map.T2_map = reshape(MRF_dict.lut(dict_match,2), [image_size(1), image_size(2)]);
 figure; imagesc(abs(squeeze(Par_map.T1_map))); axis equal tight; colormap hot; title('T1 map');

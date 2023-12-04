@@ -47,7 +47,7 @@ for n1 = 1:length(T2)
         if mod(n3, floor(num_dict_entry/10))==0
             fprintf('%d percent has been completed. \n' ,dict_progress(n3));
         end
-        [Echo_Final,echoes,seq] = EPGsim_MRF(phis,alphas,TRs,TEs,T1(n2),T2(n1),TI);
+        [Echo_Final(n3,:),echoes,seq] = EPGsim_MRF(phis,alphas,TRs,TEs,T1(n2),T2(n1),TI);
         dict_lut(n3, 1) = T1(n2);
         dict_lut(n3, 2) = T2(n1);
         n3=n3+1;        

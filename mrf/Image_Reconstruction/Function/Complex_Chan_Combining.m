@@ -26,12 +26,9 @@ end
 % Get filter
 Rs = permute(Rs,[3,4,1,2]);
 Rs = Rs(:,:,:);
-coil_filter = zeros(size(Rs,3),C);
-parfor n4 = 1:size(Rs,3)
-    [U,~] = svd(squeeze(Rs(:,:,n4)));
-    coil_filter(n4,:) = U(:,1);
-end
-
+[U,~,~] = pagesvd(Rs); % Page-wise singular value decomposition for speed
+coil_filter = squeeze(U(:,1,:));
+coil_filter = permute(coil_filter,[2 1]);
 coil_filter = reshape(coil_filter, Nx, Ny, C);
 
 end
